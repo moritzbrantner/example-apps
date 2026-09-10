@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Money",
+    "slug": "money",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "money",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

@@ -16,6 +16,7 @@ Concrete applications that consume and dogfood the reusable templates without be
 - [`books`](expo/books) — local-first reading library with ISBN scanning and optional Open Library metadata enrichment, ported from `expo-template`
 - [`habits`](expo/habits) — local-first habit tracker without streak or engagement mechanics, ported from `expo-template`
 - [`gifts`](expo/gifts) — private local-first gift tracker with explicit regift provenance, ported from `expo-template`
+- [`money`](expo/money) — local-first EUR ledger using integer cents, ported from `expo-template`
 
 ## Migration rule
 
