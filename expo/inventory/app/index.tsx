@@ -22,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   adjustQuantity,
   buildBorrowedHandoff,
+  buildDocumentsHandoff,
   buildMaintenanceHandoff,
   createInventoryItem,
   deserializeInventoryItems,
@@ -338,6 +339,11 @@ export default function InventoryApp() {
                         onPress={() => openHandoff(buildMaintenanceHandoff(item), 'Home Maintenance')}
                         style={styles.textButton}>
                         <Text style={styles.textButtonText}>Maintenance</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => openHandoff(buildDocumentsHandoff(item), 'Household Documents')}
+                        style={styles.textButton}>
+                        <Text style={styles.textButtonText}>Document</Text>
                       </Pressable>
                       <Pressable
                         onPress={() =>
