@@ -67,13 +67,12 @@ export default function InventoryApp() {
     let active = true;
     void AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
-        if (active) setItems(deserializeInventoryItems(stored));
+        if (!active) return;
+        setItems(deserializeInventoryItems(stored));
+        setHydrated(true);
       })
       .catch(() => {
-        if (active) setMessage('Local inventory could not be read.');
-      })
-      .finally(() => {
-        if (active) setHydrated(true);
+        if (active) setMessage('Local inventory could not be read. Changes will not be persisted until the app is reopened successfully.');
       });
     return () => {
       active = false;
