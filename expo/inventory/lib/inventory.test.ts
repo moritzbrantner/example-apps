@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   adjustQuantity,
   buildBorrowedHandoff,
+  buildDocumentsHandoff,
   buildMaintenanceHandoff,
   createInventoryItem,
   deserializeInventoryItems,
@@ -41,6 +42,10 @@ test('builds explicit handoffs and parses inventory callbacks', () => {
   assert.equal(
     buildMaintenanceHandoff(item),
     'maintenance://add?itemId=a%20b&name=Cordless%20drill&location=Garage%20shelf',
+  );
+  assert.equal(
+    buildDocumentsHandoff(item),
+    'documents://add?source=inventory&sourceId=a%20b&label=Cordless%20drill',
   );
   assert.equal(parseInventoryOpenHandoff('inventory://open?itemId=a%20b'), 'a b');
 });
