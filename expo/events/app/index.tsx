@@ -64,11 +64,7 @@ function guestName(event: EventPlan, guestId: string | null): string {
 
 function Choice({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={[styles.choice, selected && styles.choiceSelected]}>
+    <Pressable accessibilityRole="button" accessibilityState={{ selected }} onPress={onPress} style={[styles.choice, selected && styles.choiceSelected]}>
       <Text style={[styles.choiceText, selected && styles.choiceTextSelected]}>{label}</Text>
     </Pressable>
   );
@@ -84,7 +80,6 @@ export default function EventWorkboardApp() {
   const [eventDate, setEventDate] = useState('');
   const [eventLocation, setEventLocation] = useState('');
   const [eventNotes, setEventNotes] = useState('');
-
   const [guestDraft, setGuestDraft] = useState('');
 
   const [bringLabel, setBringLabel] = useState('');
@@ -107,9 +102,7 @@ export default function EventWorkboardApp() {
         setHydrated(true);
       })
       .catch(() => {
-        if (active) {
-          setMessage('Saved events could not be read. Changes will not be persisted until the app is reopened successfully.');
-        }
+        if (active) setMessage('Saved events could not be read. Changes will not be persisted until the app is reopened successfully.');
       });
     return () => {
       active = false;
@@ -130,9 +123,7 @@ export default function EventWorkboardApp() {
       if (inventory) {
         setBringLabel(inventory.label);
         setBringInventoryItemId(inventory.inventoryItemId);
-        setMessage(collection.selectedEventId
-          ? 'Inventory item staged in the Bring section.'
-          : 'Inventory item staged. Create or select an event, then add it in the Bring section.');
+        setMessage('Inventory item staged in the Bring section. Create or select an event if needed, then add it.');
         return;
       }
       const imported = parseEventImportHandoff(url);
@@ -147,24 +138,25 @@ export default function EventWorkboardApp() {
     });
     const subscription = Linking.addEventListener('url', ({ url }) => handleUrl(url));
     return () => subscription.remove();
-  }, [collection.selectedEventId]);
+  }, []);
 
   const selectedEvent = collection.events.find((event) => event.id === collection.selectedEventId) ?? null;
   const orderedEvents = useMemo(
-    () => [...collection.events].sort((left, right) => (left.date || '9999-99-99').localeCompare(right.date || '9999-99-99') || left.title.localeCompare(right.title)),
+    () => [...collection.events].sort((a, b) => (a.date || '9999-99-99').localeCompare(b.date || '9999-99-99') || a.title.localeCompare(b.title)),
     [collection.events],
   );
 
   const updateSelected = (update: (event: EventPlan) => EventPlan) => {
-    if (!collection.selectedEventId) return;
-    setCollection((current) => ({
-      ...current,
-      events: current.events.map((event) => event.id === current.selectedEventId ? update(event) : event),
-    }));
+    setCollection((current) => {
+      if (!current.selectedEventId) return current;
+      return {
+        ...current,
+        events: current.events.map((event) => event.id === current.selectedEventId ? update(event) : event),
+      };
+    });
   };
 
   const createNewEvent = () => {
-    setMessage('');
     try {
       const event = createEvent({ id: makeId('event'), title: eventTitle, date: eventDate, location: eventLocation, notes: eventNotes });
       setCollection((current) => ({ events: [...current.events, event], selectedEventId: event.id }));
@@ -172,25 +164,25 @@ export default function EventWorkboardApp() {
       setEventDate('');
       setEventLocation('');
       setEventNotes('');
+      setMessage('');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not create event.');
     }
   };
 
   const addInvitee = () => {
-    if (!selectedEvent || !guestDraft.trim()) return;
-    setMessage('');
+    if (!guestDraft.trim()) return;
     try {
       updateSelected((event) => addGuest(event, { id: makeId('guest'), name: guestDraft }));
       setGuestDraft('');
+      setMessage('');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not add invitee.');
     }
   };
 
   const addBring = () => {
-    if (!selectedEvent || !bringLabel.trim()) return;
-    setMessage('');
+    if (!bringLabel.trim()) return;
     try {
       updateSelected((event) => addBringItem(event, {
         id: makeId('bring'),
@@ -205,37 +197,24 @@ export default function EventWorkboardApp() {
       setBringGuestId(null);
       setBringInventoryItemId(null);
       setBringNotes('');
+      setMessage('');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not add bring item.');
     }
   };
 
   const addWork = () => {
-    if (!selectedEvent || !taskTitle.trim()) return;
-    setMessage('');
+    if (!taskTitle.trim()) return;
     try {
-      updateSelected((event) => addTask(event, {
-        id: makeId('task'),
-        title: taskTitle,
-        category: taskCategory,
-        guestId: taskGuestId,
-        notes: taskNotes,
-      }));
+      updateSelected((event) => addTask(event, { id: makeId('task'), title: taskTitle, category: taskCategory, guestId: taskGuestId, notes: taskNotes }));
       setTaskTitle('');
       setTaskCategory('general');
       setTaskGuestId(null);
       setTaskNotes('');
+      setMessage('');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Could not add work item.');
     }
-  };
-
-  const shareSelected = () => {
-    if (!selectedEvent) return;
-    void Share.share({
-      title: selectedEvent.title,
-      message: buildEventImportHandoff(selectedEvent),
-    }).catch(() => setMessage('This device could not open a share target.'));
   };
 
   const acceptImport = () => {
@@ -263,7 +242,7 @@ export default function EventWorkboardApp() {
           <Text style={styles.heading}>Organize the people and the work around an event.</Text>
           <Text style={styles.subheading}>Invitations, things to bring, setup, general work, and cleanup stay visible in one local board.</Text>
 
-          <View style={styles.composer}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>New event</Text>
             <TextInput accessibilityLabel="Event title" onChangeText={setEventTitle} placeholder="Parish lunch, birthday, family visit…" placeholderTextColor="#7b817b" style={styles.input} value={eventTitle} />
             <View style={styles.row}>
@@ -277,7 +256,7 @@ export default function EventWorkboardApp() {
           </View>
 
           {orderedEvents.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventTabs}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
               {orderedEvents.map((event) => (
                 <Choice key={event.id} label={`${event.title}${event.date ? ` · ${event.date}` : ''}`} selected={event.id === collection.selectedEventId} onPress={() => setCollection((current) => ({ ...current, selectedEventId: event.id }))} />
               ))}
@@ -286,11 +265,11 @@ export default function EventWorkboardApp() {
 
           {pendingImport ? (
             <View style={styles.importBox}>
-              <Text style={styles.importTitle}>Shared event: {pendingImport.title}</Text>
+              <Text style={styles.itemTitle}>Shared event: {pendingImport.title}</Text>
               <Text style={styles.meta}>{pendingImport.date || 'No date'}{pendingImport.location ? ` · ${pendingImport.location}` : ''}</Text>
-              <Text style={styles.importText}>This will add a copied event. It will not merge into or overwrite an existing local event.</Text>
-              <View style={styles.actionRow}>
-                <Pressable onPress={acceptImport} style={styles.textButton}><Text style={styles.textButtonText}>Add local copy</Text></Pressable>
+              <Text style={styles.note}>Accepting this adds a copied event. It never merges into or overwrites an existing local event.</Text>
+              <View style={styles.actions}>
+                <Pressable onPress={acceptImport} style={styles.textButton}><Text style={styles.actionText}>Add local copy</Text></Pressable>
                 <Pressable onPress={() => setPendingImport(null)} style={styles.textButton}><Text style={styles.deleteText}>Discard</Text></Pressable>
               </View>
             </View>
@@ -312,65 +291,56 @@ export default function EventWorkboardApp() {
                   <TextInput accessibilityLabel="Invitee name" onChangeText={setGuestDraft} onSubmitEditing={addInvitee} placeholder="Invite someone" placeholderTextColor="#7b817b" style={[styles.input, styles.rowInput]} value={guestDraft} />
                   <Pressable disabled={!guestDraft.trim()} onPress={addInvitee} style={[styles.smallButton, !guestDraft.trim() && styles.disabled]}><Text style={styles.smallButtonText}>Invite</Text></Pressable>
                 </View>
-                <View style={styles.list}>
-                  {selectedEvent.guests.length === 0 ? <Text style={styles.emptyText}>No invitees yet.</Text> : selectedEvent.guests.map((guest) => (
-                    <View key={guest.id} style={styles.itemRow}>
-                      <Text style={styles.itemTitle}>{guest.name}</Text>
-                      <View style={styles.choiceRow}>
-                        {RSVP_STATUSES.map((status) => <Choice key={status} label={statusLabel(status)} selected={guest.status === status} onPress={() => updateSelected((event) => setGuestStatus(event, guest.id, status))} />)}
-                      </View>
-                      <Pressable onPress={() => {
-                        updateSelected((event) => removeGuest(event, guest.id));
-                        if (bringGuestId === guest.id) setBringGuestId(null);
-                        if (taskGuestId === guest.id) setTaskGuestId(null);
-                      }} style={styles.textButton}><Text style={styles.deleteText}>Remove invitee</Text></Pressable>
-                    </View>
-                  ))}
-                </View>
+                {selectedEvent.guests.length === 0 ? <Text style={styles.empty}>No invitees yet.</Text> : selectedEvent.guests.map((guest) => (
+                  <View key={guest.id} style={styles.itemRow}>
+                    <Text style={styles.itemTitle}>{guest.name}</Text>
+                    <View style={styles.choices}>{RSVP_STATUSES.map((status) => <Choice key={status} label={statusLabel(status)} selected={guest.status === status} onPress={() => updateSelected((event) => setGuestStatus(event, guest.id, status))} />)}</View>
+                    <Pressable onPress={() => {
+                      updateSelected((event) => removeGuest(event, guest.id));
+                      if (bringGuestId === guest.id) setBringGuestId(null);
+                      if (taskGuestId === guest.id) setTaskGuestId(null);
+                    }} style={styles.textButton}><Text style={styles.deleteText}>Remove invitee</Text></Pressable>
+                  </View>
+                ))}
               </View>
 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Bring</Text>
-                {bringInventoryItemId ? <Text style={styles.linkedText}>Staged from Household Inventory</Text> : null}
-                <TextInput accessibilityLabel="Thing to bring" onChangeText={(value) => {
-                  setBringLabel(value);
-                  if (!value.trim()) setBringInventoryItemId(null);
-                }} placeholder="Dessert, folding chairs, drinks…" placeholderTextColor="#7b817b" style={styles.input} value={bringLabel} />
+                {bringInventoryItemId ? <Text style={styles.linked}>Staged from Household Inventory</Text> : null}
+                <TextInput accessibilityLabel="Thing to bring" onChangeText={(value) => { setBringLabel(value); if (!value.trim()) setBringInventoryItemId(null); }} placeholder="Dessert, folding chairs, drinks…" placeholderTextColor="#7b817b" style={styles.input} value={bringLabel} />
                 <TextInput accessibilityLabel="Bring quantity" onChangeText={setBringQuantity} placeholder="Quantity or amount (optional)" placeholderTextColor="#7b817b" style={styles.input} value={bringQuantity} />
                 <Text style={styles.fieldLabel}>Responsible person</Text>
-                <View style={styles.choiceRow}>
+                <View style={styles.choices}>
                   <Choice label="Unassigned" selected={bringGuestId === null} onPress={() => setBringGuestId(null)} />
                   {selectedEvent.guests.map((guest) => <Choice key={guest.id} label={guest.name} selected={bringGuestId === guest.id} onPress={() => setBringGuestId(guest.id)} />)}
                 </View>
                 <TextInput accessibilityLabel="Bring notes" onChangeText={setBringNotes} placeholder="Optional note" placeholderTextColor="#7b817b" style={styles.input} value={bringNotes} />
                 <Pressable disabled={!bringLabel.trim()} onPress={addBring} style={({ pressed }) => [styles.primaryButton, !bringLabel.trim() && styles.disabled, pressed && styles.pressed]}><Text style={styles.primaryButtonText}>Add bring item</Text></Pressable>
 
-                <View style={styles.list}>
-                  {selectedEvent.bringItems.length === 0 ? <Text style={styles.emptyText}>Nothing assigned to bring yet.</Text> : [...selectedEvent.bringItems].sort((a, b) => Number(a.brought) - Number(b.brought) || a.label.localeCompare(b.label)).map((item) => (
-                    <View key={item.id} style={styles.itemRow}>
-                      <Text style={[styles.itemTitle, item.brought && styles.doneText]}>{item.label}{item.quantity ? ` · ${item.quantity}` : ''}</Text>
-                      <Text style={styles.meta}>{guestName(selectedEvent, item.guestId)}</Text>
-                      {item.notes ? <Text style={styles.note}>{item.notes}</Text> : null}
-                      <View style={styles.actionRow}>
-                        <Pressable onPress={() => updateSelected((event) => setBringItemBrought(event, item.id, !item.brought))} style={styles.textButton}><Text style={styles.textButtonText}>{item.brought ? 'Mark not brought' : 'Mark brought'}</Text></Pressable>
-                        {item.inventoryItemId ? <Pressable onPress={() => {
-                          const url = buildInventoryOpenHandoff(item);
-                          if (url) void Linking.openURL(url).catch(() => setMessage('Household Inventory could not be opened.'));
-                        }} style={styles.textButton}><Text style={styles.textButtonText}>Inventory</Text></Pressable> : null}
-                        <Pressable onPress={() => updateSelected((event) => ({ ...event, bringItems: event.bringItems.filter((candidate) => candidate.id !== item.id), updatedAt: new Date().toISOString() }))} style={styles.textButton}><Text style={styles.deleteText}>Remove</Text></Pressable>
-                      </View>
+                {[...selectedEvent.bringItems].sort((a, b) => Number(a.brought) - Number(b.brought) || a.label.localeCompare(b.label)).map((item) => (
+                  <View key={item.id} style={styles.itemRow}>
+                    <Text style={[styles.itemTitle, item.brought && styles.done]}>{item.label}{item.quantity ? ` · ${item.quantity}` : ''}</Text>
+                    <Text style={styles.meta}>{guestName(selectedEvent, item.guestId)}</Text>
+                    {item.notes ? <Text style={styles.note}>{item.notes}</Text> : null}
+                    <View style={styles.actions}>
+                      <Pressable onPress={() => updateSelected((event) => setBringItemBrought(event, item.id, !item.brought))} style={styles.textButton}><Text style={styles.actionText}>{item.brought ? 'Mark not brought' : 'Mark brought'}</Text></Pressable>
+                      {item.inventoryItemId ? <Pressable onPress={() => {
+                        const url = buildInventoryOpenHandoff(item);
+                        if (url) void Linking.openURL(url).catch(() => setMessage('Household Inventory could not be opened.'));
+                      }} style={styles.textButton}><Text style={styles.actionText}>Inventory</Text></Pressable> : null}
+                      <Pressable onPress={() => updateSelected((event) => ({ ...event, bringItems: event.bringItems.filter((candidate) => candidate.id !== item.id), updatedAt: new Date().toISOString() }))} style={styles.textButton}><Text style={styles.deleteText}>Remove</Text></Pressable>
                     </View>
-                  ))}
-                </View>
+                  </View>
+                ))}
               </View>
 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Work</Text>
                 <TextInput accessibilityLabel="Work item" onChangeText={setTaskTitle} placeholder="Set tables, welcome guests, clean kitchen…" placeholderTextColor="#7b817b" style={styles.input} value={taskTitle} />
                 <Text style={styles.fieldLabel}>Category</Text>
-                <View style={styles.choiceRow}>{TASK_CATEGORIES.map((category) => <Choice key={category} label={categoryLabel(category)} selected={taskCategory === category} onPress={() => setTaskCategory(category)} />)}</View>
+                <View style={styles.choices}>{TASK_CATEGORIES.map((category) => <Choice key={category} label={categoryLabel(category)} selected={taskCategory === category} onPress={() => setTaskCategory(category)} />)}</View>
                 <Text style={styles.fieldLabel}>Responsible person</Text>
-                <View style={styles.choiceRow}>
+                <View style={styles.choices}>
                   <Choice label="Unassigned" selected={taskGuestId === null} onPress={() => setTaskGuestId(null)} />
                   {selectedEvent.guests.map((guest) => <Choice key={guest.id} label={guest.name} selected={taskGuestId === guest.id} onPress={() => setTaskGuestId(guest.id)} />)}
                 </View>
@@ -381,15 +351,15 @@ export default function EventWorkboardApp() {
                   const tasks = selectedEvent.tasks.filter((task) => task.category === category).sort((a, b) => Number(a.done) - Number(b.done) || a.title.localeCompare(b.title));
                   if (tasks.length === 0) return null;
                   return (
-                    <View key={category} style={styles.workGroup}>
+                    <View key={category} style={styles.group}>
                       <Text style={styles.groupTitle}>{categoryLabel(category)}</Text>
                       {tasks.map((task) => (
                         <View key={task.id} style={styles.itemRow}>
-                          <Text style={[styles.itemTitle, task.done && styles.doneText]}>{task.title}</Text>
+                          <Text style={[styles.itemTitle, task.done && styles.done]}>{task.title}</Text>
                           <Text style={styles.meta}>{guestName(selectedEvent, task.guestId)}</Text>
                           {task.notes ? <Text style={styles.note}>{task.notes}</Text> : null}
-                          <View style={styles.actionRow}>
-                            <Pressable onPress={() => updateSelected((event) => setTaskDone(event, task.id, !task.done))} style={styles.textButton}><Text style={styles.textButtonText}>{task.done ? 'Undo' : 'Done'}</Text></Pressable>
+                          <View style={styles.actions}>
+                            <Pressable onPress={() => updateSelected((event) => setTaskDone(event, task.id, !task.done))} style={styles.textButton}><Text style={styles.actionText}>{task.done ? 'Undo' : 'Done'}</Text></Pressable>
                             <Pressable onPress={() => updateSelected((event) => ({ ...event, tasks: event.tasks.filter((candidate) => candidate.id !== task.id), updatedAt: new Date().toISOString() }))} style={styles.textButton}><Text style={styles.deleteText}>Remove</Text></Pressable>
                           </View>
                         </View>
@@ -400,13 +370,11 @@ export default function EventWorkboardApp() {
               </View>
 
               <View style={styles.bottomActions}>
-                <Pressable onPress={shareSelected} style={styles.textButton}><Text style={styles.textButtonText}>Share event snapshot</Text></Pressable>
+                <Pressable onPress={() => void Share.share({ title: selectedEvent.title, message: buildEventImportHandoff(selectedEvent) }).catch(() => setMessage('This device could not open a share target.'))} style={styles.textButton}><Text style={styles.actionText}>Share event snapshot</Text></Pressable>
                 <Pressable onPress={removeSelectedEvent} style={styles.textButton}><Text style={styles.deleteText}>Remove event</Text></Pressable>
               </View>
             </>
-          ) : (
-            <Text style={styles.emptyText}>Create an event to start organizing invitations and responsibilities.</Text>
-          )}
+          ) : <Text style={styles.empty}>Create an event to start organizing invitations and responsibilities.</Text>}
 
           <Text style={styles.footer}>Shared snapshots create deliberate local copies; they are not live synchronization. Inventory links remain references to the source item.</Text>
         </ScrollView>
@@ -416,51 +384,12 @@ export default function EventWorkboardApp() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  safeArea: { flex: 1, backgroundColor: '#f5f3ed' },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', padding: 20, paddingBottom: 56 },
-  eyebrow: { color: '#657067', fontSize: 12, fontWeight: '800', letterSpacing: 1.4 },
-  heading: { color: '#1f2921', fontSize: 34, fontWeight: '800', lineHeight: 39, letterSpacing: -1, marginTop: 8 },
-  subheading: { color: '#687068', fontSize: 15, lineHeight: 22, marginTop: 8 },
-  composer: { borderTopColor: '#d9dbd5', borderTopWidth: 1, marginTop: 24, paddingTop: 20 },
-  section: { borderTopColor: '#d9dbd5', borderTopWidth: 1, marginTop: 28, paddingTop: 20 },
-  sectionTitle: { color: '#273129', fontSize: 19, fontWeight: '800' },
-  input: { backgroundColor: '#fff', borderColor: '#d7d9d2', borderWidth: 1, borderRadius: 14, color: '#1f2921', fontSize: 16, marginTop: 10, paddingHorizontal: 14, paddingVertical: 12 },
-  row: { flexDirection: 'row', gap: 10 },
-  rowInput: { flex: 1, minWidth: 0 },
-  primaryButton: { alignItems: 'center', backgroundColor: '#243c2b', borderRadius: 14, marginTop: 14, paddingVertical: 13 },
-  primaryButtonText: { color: '#fff', fontWeight: '800' },
-  smallButton: { alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', backgroundColor: '#e3e8e1', borderRadius: 14, marginTop: 10, paddingHorizontal: 16 },
-  smallButtonText: { color: '#31513a', fontWeight: '800' },
-  disabled: { opacity: 0.4 },
-  pressed: { opacity: 0.68 },
-  eventTabs: { gap: 8, paddingTop: 18, paddingBottom: 4 },
-  choiceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
-  choice: { borderColor: '#cfd3cc', borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8 },
-  choiceSelected: { backgroundColor: '#243c2b', borderColor: '#243c2b' },
-  choiceText: { color: '#687068', fontSize: 12, fontWeight: '700' },
-  choiceTextSelected: { color: '#fff' },
-  message: { color: '#4f6555', fontSize: 13, lineHeight: 19, marginTop: 14 },
-  importBox: { backgroundColor: '#faf9f5', borderColor: '#d7d9d2', borderWidth: 1, borderRadius: 18, marginTop: 20, padding: 16 },
-  importTitle: { color: '#273129', fontSize: 16, fontWeight: '800' },
-  importText: { color: '#676f68', fontSize: 13, lineHeight: 19, marginTop: 6 },
-  eventHeader: { marginTop: 24 },
-  eventTitle: { color: '#273129', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
-  list: { borderTopColor: '#d9dbd5', borderTopWidth: 1, marginTop: 12 },
-  itemRow: { borderBottomColor: '#d9dbd5', borderBottomWidth: 1, paddingVertical: 13 },
-  itemTitle: { color: '#273129', fontSize: 16, fontWeight: '800' },
-  doneText: { color: '#7b827c', textDecorationLine: 'line-through' },
-  meta: { color: '#737a74', fontSize: 12, lineHeight: 18, marginTop: 4 },
-  note: { color: '#666e67', fontSize: 13, lineHeight: 19, marginTop: 5 },
-  fieldLabel: { color: '#626a63', fontSize: 12, fontWeight: '800', marginTop: 13 },
-  linkedText: { color: '#526a58', fontSize: 12, fontWeight: '700', marginTop: 8 },
-  actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 8 },
-  textButton: { paddingVertical: 6 },
-  textButtonText: { color: '#31513a', fontSize: 12, fontWeight: '800' },
-  deleteText: { color: '#8c4a45', fontSize: 12, fontWeight: '800' },
-  emptyText: { color: '#737a74', paddingVertical: 22 },
-  workGroup: { marginTop: 18 },
-  groupTitle: { color: '#536158', fontSize: 13, fontWeight: '900', letterSpacing: 0.6, textTransform: 'uppercase' },
-  bottomActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 26 },
-  footer: { color: '#868b86', fontSize: 12, lineHeight: 18, marginTop: 28 },
+  flex: { flex: 1 }, safeArea: { flex: 1, backgroundColor: '#f5f3ed' }, content: { width: '100%', maxWidth: 760, alignSelf: 'center', padding: 20, paddingBottom: 56 },
+  eyebrow: { color: '#657067', fontSize: 12, fontWeight: '800', letterSpacing: 1.4 }, heading: { color: '#1f2921', fontSize: 34, fontWeight: '800', lineHeight: 39, letterSpacing: -1, marginTop: 8 }, subheading: { color: '#687068', fontSize: 15, lineHeight: 22, marginTop: 8 },
+  section: { borderTopColor: '#d9dbd5', borderTopWidth: 1, marginTop: 24, paddingTop: 20 }, sectionTitle: { color: '#273129', fontSize: 19, fontWeight: '800' }, eventHeader: { marginTop: 24 }, eventTitle: { color: '#273129', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
+  input: { backgroundColor: '#fff', borderColor: '#d7d9d2', borderWidth: 1, borderRadius: 14, color: '#1f2921', fontSize: 16, marginTop: 10, paddingHorizontal: 14, paddingVertical: 12 }, row: { flexDirection: 'row', gap: 10 }, rowInput: { flex: 1, minWidth: 0 },
+  primaryButton: { alignItems: 'center', backgroundColor: '#243c2b', borderRadius: 14, marginTop: 14, paddingVertical: 13 }, primaryButtonText: { color: '#fff', fontWeight: '800' }, smallButton: { alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', backgroundColor: '#e3e8e1', borderRadius: 14, marginTop: 10, paddingHorizontal: 16 }, smallButtonText: { color: '#31513a', fontWeight: '800' }, disabled: { opacity: 0.4 }, pressed: { opacity: 0.68 },
+  tabs: { gap: 8, paddingTop: 18, paddingBottom: 4 }, choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 }, choice: { borderColor: '#cfd3cc', borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8 }, choiceSelected: { backgroundColor: '#243c2b', borderColor: '#243c2b' }, choiceText: { color: '#687068', fontSize: 12, fontWeight: '700' }, choiceTextSelected: { color: '#fff' },
+  importBox: { backgroundColor: '#faf9f5', borderColor: '#d7d9d2', borderWidth: 1, borderRadius: 18, marginTop: 20, padding: 16 }, message: { color: '#4f6555', fontSize: 13, lineHeight: 19, marginTop: 14 }, itemRow: { borderBottomColor: '#d9dbd5', borderBottomWidth: 1, paddingVertical: 13 }, itemTitle: { color: '#273129', fontSize: 16, fontWeight: '800' }, meta: { color: '#737a74', fontSize: 12, lineHeight: 18, marginTop: 4 }, note: { color: '#666e67', fontSize: 13, lineHeight: 19, marginTop: 5 }, fieldLabel: { color: '#626a63', fontSize: 12, fontWeight: '800', marginTop: 13 }, linked: { color: '#526a58', fontSize: 12, fontWeight: '700', marginTop: 8 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginTop: 8 }, textButton: { paddingVertical: 6 }, actionText: { color: '#31513a', fontSize: 12, fontWeight: '800' }, deleteText: { color: '#8c4a45', fontSize: 12, fontWeight: '800' }, done: { color: '#7b827c', textDecorationLine: 'line-through' }, empty: { color: '#737a74', paddingVertical: 18 }, group: { marginTop: 18 }, groupTitle: { color: '#536158', fontSize: 13, fontWeight: '900', letterSpacing: 0.6, textTransform: 'uppercase' }, bottomActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 26 }, footer: { color: '#868b86', fontSize: 12, lineHeight: 18, marginTop: 28 },
 });
