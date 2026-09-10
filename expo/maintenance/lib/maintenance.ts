@@ -25,6 +25,10 @@ function normalizeText(value: string): string {
   return value.trim().replace(/\s+/g, ' ');
 }
 
+function encoded(value: string): string {
+  return encodeURIComponent(value);
+}
+
 export function isDateKey(value: string): boolean {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return false;
@@ -119,7 +123,13 @@ export function parseInventoryMaintenanceHandoff(rawUrl: string): InventoryMaint
 
 export function buildInventoryOpenHandoff(asset: MaintainedAsset): string | null {
   if (!asset.inventoryItemId) return null;
-  return `inventory://open?itemId=${encodeURIComponent(asset.inventoryItemId)}`;
+  return `inventory://open?itemId=${encoded(asset.inventoryItemId)}`;
+}
+
+export function buildChoreHandoff(asset: MaintainedAsset): string {
+  const due = nextDueOn(asset);
+  const dueQuery = due ? `&dueOn=${encoded(due)}` : '';
+  return `chores://add?source=maintenance&sourceId=${encoded(asset.id)}&title=${encoded(`Maintain ${asset.name}`)}${dueQuery}`;
 }
 
 export function deserializeAssets(raw: string | null): MaintainedAsset[] {

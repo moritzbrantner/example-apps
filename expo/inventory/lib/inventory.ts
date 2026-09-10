@@ -90,6 +90,10 @@ export function buildMaintenanceHandoff(item: InventoryItem): string {
   return `maintenance://add?itemId=${encoded(item.id)}&name=${encoded(item.name)}${location}`;
 }
 
+export function buildDocumentsHandoff(item: InventoryItem): string {
+  return `documents://add?source=inventory&sourceId=${encoded(item.id)}&label=${encoded(item.name)}`;
+}
+
 export function parseInventoryOpenHandoff(rawUrl: string): string | null {
   if (!rawUrl.startsWith('inventory://open?')) return null;
   const query = rawUrl.slice(rawUrl.indexOf('?') + 1);

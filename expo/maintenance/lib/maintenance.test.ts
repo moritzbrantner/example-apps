@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildChoreHandoff,
   buildInventoryOpenHandoff,
   createAsset,
   daysUntilDue,
@@ -26,6 +27,10 @@ test('derives the next maintenance date from explicit completion history', () =>
   );
   assert.equal(nextDueOn(completed), '2026-12-09');
   assert.equal(daysUntilDue(completed, '2026-12-01'), 8);
+  assert.equal(
+    buildChoreHandoff(completed),
+    'chores://add?source=maintenance&sourceId=asset-1&title=Maintain%20Water%20filter&dueOn=2026-12-09',
+  );
 });
 
 test('same-day completion is idempotent', () => {
