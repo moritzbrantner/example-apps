@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Household Documents",
+    "slug": "documents",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "documents",
+    "userInterfaceStyle": "light",
+    "ios": { "supportsTablet": true },
+    "android": { "predictiveBackGestureEnabled": false },
+    "web": { "output": "single" },
+    "plugins": ["expo-router", "expo-document-picker"],
+    "experiments": { "typedRoutes": true, "reactCompiler": true }
+  }
+}
