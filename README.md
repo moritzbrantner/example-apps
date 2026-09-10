@@ -12,6 +12,7 @@ Concrete applications that consume and dogfood the reusable templates without be
 ### Expo
 
 - [`converter`](expo/converter) — offline deterministic unit converter, ported from `expo-template`
+- [`contractions`](expo/contractions) — local-first contraction timing log, ported from `expo-template`
 
 ## Migration rule
 
