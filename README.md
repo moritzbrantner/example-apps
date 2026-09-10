@@ -20,6 +20,8 @@ Concrete applications that consume and dogfood the reusable templates without be
 - [`inventory`](expo/inventory) — local-first household inventory with barcode/QR scanning and explicit cross-app handoffs
 - [`borrowed`](expo/borrowed) — local-first borrowing and lending records that can reference Inventory items
 - [`maintenance`](expo/maintenance) — local-first maintenance history and due dates that can reference Inventory items
+- [`documents`](expo/documents) — household document catalog with native managed-file import/export and source references
+- [`chores`](expo/chores) — recurring household responsibilities with rotation and explicit shareable snapshots
 
 ## Interoperability
 
