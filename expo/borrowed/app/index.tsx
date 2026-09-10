@@ -46,10 +46,12 @@ export default function BorrowedApp() {
     let active = true;
     void AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
-        if (active) setLoans(deserializeLoans(stored));
+        if (!active) return;
+        setLoans(deserializeLoans(stored));
+        setHydrated(true);
       })
-      .finally(() => {
-        if (active) setHydrated(true);
+      .catch(() => {
+        if (active) setMessage('Loan history could not be read. Changes will not be persisted until the app is reopened successfully.');
       });
     return () => {
       active = false;
