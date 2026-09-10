@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Music Practice",
+    "slug": "music-practice",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "musicpractice",
+    "userInterfaceStyle": "light",
+    "ios": { "supportsTablet": true },
+    "android": { "predictiveBackGestureEnabled": false },
+    "web": { "output": "single" },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow Music Practice to record your practice takes.",
+          "recordAudioAndroid": true,
+          "enableBackgroundRecording": false,
+          "enableBackgroundPlayback": false
+        }
+      ]
+    ],
+    "experiments": { "typedRoutes": true, "reactCompiler": true }
+  }
+}

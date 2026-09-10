@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Sketchbook",
+    "slug": "sketchbook",
+    "version": "0.1.0",
+    "orientation": "default",
+    "scheme": "sketchbook",
+    "userInterfaceStyle": "light",
+    "ios": { "supportsTablet": true },
+    "android": { "predictiveBackGestureEnabled": false },
+    "web": { "output": "single" },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true, "reactCompiler": true }
+  }
+}
