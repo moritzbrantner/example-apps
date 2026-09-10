@@ -24,6 +24,13 @@ Concrete applications that consume and dogfood the reusable templates without be
 - [`chores`](expo/chores) — recurring household responsibilities with rotation and explicit shareable snapshots
 - [`events`](expo/events) — event organization workboard for invitees, bring commitments, setup/general/cleanup work, and explicit shareable snapshots
 
+### Fine arts · Expo
+
+- [`music-practice`](expo/music-practice) — local-first practice notebook with wall-clock timing and persistent native audio takes
+- [`sketchbook`](expo/sketchbook) — local-first vector sketchbook with freehand drawing, brush controls, undo, and redo
+
+The fine-arts examples intentionally start as small usable tools. Requirements such as instrument modeling, sheet music, tuning analysis, pressure-sensitive drawing, layers, references, and export should emerge from actual use before shared abstractions are introduced.
+
 ## Interoperability
 
 Everyday apps remain separate authorities but can exchange bounded intents through the [`everyday interoperability v1`](contracts/everyday-interop-v1.md) contract. This keeps app-to-app workflows explicit without introducing a hidden shared runtime dependency.
