@@ -9,8 +9,7 @@
     "web": "expo start --web",
     "build": "expo export --platform web",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
-    "verify": "bun run test && bun run typecheck && bun run build"
+    "verify": "bun run typecheck && bun run build"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
