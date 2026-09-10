@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Unit Converter",
+    "slug": "converter",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "converter",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
