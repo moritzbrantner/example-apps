@@ -22,6 +22,7 @@ Concrete applications that consume and dogfood the reusable templates without be
 - [`maintenance`](expo/maintenance) — local-first maintenance history and due dates that can reference Inventory items
 - [`documents`](expo/documents) — household document catalog with native managed-file import/export and source references
 - [`chores`](expo/chores) — recurring household responsibilities with rotation and explicit shareable snapshots
+- [`events`](expo/events) — event organization workboard for invitees, bring commitments, setup/general/cleanup work, and explicit shareable snapshots
 
 ## Interoperability
 
