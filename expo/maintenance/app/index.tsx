@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
+  buildChoreHandoff,
   buildInventoryOpenHandoff,
   createAsset,
   daysUntilDue,
@@ -155,6 +156,12 @@ export default function MaintenanceApp() {
     });
   };
 
+  const openChores = (asset: MaintainedAsset) => {
+    void Linking.openURL(buildChoreHandoff(asset)).catch(() => {
+      setMessage('Shared Chores is not installed or cannot open this handoff here.');
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
@@ -226,6 +233,9 @@ export default function MaintenanceApp() {
                       <Pressable onPress={() => complete(asset)} style={styles.textButton}>
                         <Text style={styles.textButtonText}>Done today</Text>
                       </Pressable>
+                      <Pressable onPress={() => openChores(asset)} style={styles.textButton}>
+                        <Text style={styles.textButtonText}>Create chore</Text>
+                      </Pressable>
                       {asset.inventoryItemId ? (
                         <Pressable onPress={() => openInventory(asset)} style={styles.textButton}>
                           <Text style={styles.textButtonText}>Inventory</Text>
@@ -244,7 +254,7 @@ export default function MaintenanceApp() {
           </View>
 
           <Text style={styles.footer}>
-            Home Maintenance owns maintenance history. Inventory links are foreign references only; schedules are derived from explicit completion records.
+            Home Maintenance owns maintenance history. Inventory and Chores links are foreign references only; schedules are derived from explicit completion records.
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
