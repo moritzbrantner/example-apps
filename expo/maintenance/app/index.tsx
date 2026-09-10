@@ -66,10 +66,12 @@ export default function MaintenanceApp() {
     let active = true;
     void AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
-        if (active) setAssets(deserializeAssets(stored));
+        if (!active) return;
+        setAssets(deserializeAssets(stored));
+        setHydrated(true);
       })
-      .finally(() => {
-        if (active) setHydrated(true);
+      .catch(() => {
+        if (active) setMessage('Maintenance history could not be read. Changes will not be persisted until the app is reopened successfully.');
       });
     return () => {
       active = false;
