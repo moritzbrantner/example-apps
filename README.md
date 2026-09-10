@@ -13,6 +13,7 @@ Concrete applications that consume and dogfood the reusable templates without be
 
 - [`converter`](expo/converter) — offline deterministic unit converter, ported from `expo-template`
 - [`contractions`](expo/contractions) — local-first contraction timing log, ported from `expo-template`
+- [`books`](expo/books) — local-first reading library with ISBN scanning and optional Open Library metadata enrichment, ported from `expo-template`
 
 ## Migration rule
 
