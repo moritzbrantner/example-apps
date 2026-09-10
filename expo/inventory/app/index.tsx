@@ -23,6 +23,7 @@ import {
   adjustQuantity,
   buildBorrowedHandoff,
   buildDocumentsHandoff,
+  buildEventWorkboardHandoff,
   buildMaintenanceHandoff,
   createInventoryItem,
   deserializeInventoryItems,
@@ -344,6 +345,11 @@ export default function InventoryApp() {
                         onPress={() => openHandoff(buildDocumentsHandoff(item), 'Household Documents')}
                         style={styles.textButton}>
                         <Text style={styles.textButtonText}>Document</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => openHandoff(buildEventWorkboardHandoff(item), 'Event Workboard')}
+                        style={styles.textButton}>
+                        <Text style={styles.textButtonText}>Event</Text>
                       </Pressable>
                       <Pressable
                         onPress={() =>

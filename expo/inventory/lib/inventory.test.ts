@@ -5,6 +5,7 @@ import {
   adjustQuantity,
   buildBorrowedHandoff,
   buildDocumentsHandoff,
+  buildEventWorkboardHandoff,
   buildMaintenanceHandoff,
   createInventoryItem,
   deserializeInventoryItems,
@@ -46,6 +47,10 @@ test('builds explicit handoffs and parses inventory callbacks', () => {
   assert.equal(
     buildDocumentsHandoff(item),
     'documents://add?source=inventory&sourceId=a%20b&label=Cordless%20drill',
+  );
+  assert.equal(
+    buildEventWorkboardHandoff(item),
+    'eventworkboard://add?source=inventory&sourceId=a%20b&label=Cordless%20drill',
   );
   assert.equal(parseInventoryOpenHandoff('inventory://open?itemId=a%20b'), 'a b');
 });
