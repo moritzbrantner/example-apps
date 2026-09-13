@@ -21,6 +21,7 @@ Concrete applications that consume and dogfood the reusable templates without be
 - [`borrowed`](expo/borrowed) — local-first borrowing and lending records that can reference Inventory items
 - [`maintenance`](expo/maintenance) — local-first maintenance history and due dates that can reference Inventory items
 - [`documents`](expo/documents) — household document catalog with native managed-file import/export and source references
+- [`church-documents`](expo/church-documents) — local-first Church document catalog with search, bookmarks, reading status, and provenance-preserving handoff to official texts
 - [`chores`](expo/chores) — recurring household responsibilities with rotation and explicit shareable snapshots
 - [`events`](expo/events) — event organization workboard for invitees, bring commitments, setup/general/cleanup work, and explicit shareable snapshots
 

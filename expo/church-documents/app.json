@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Church Documents",
+    "slug": "church-documents",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "churchdocuments",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
