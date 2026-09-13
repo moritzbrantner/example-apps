@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Linking,
   Pressable,
@@ -27,6 +27,7 @@ import {
   readerStateKey,
   saveReadingState,
   withParagraphBookmarkToggled,
+  withReaderStateReconciled,
   withReadingStatus,
   withResumeLocation,
   type ReadingState,
@@ -36,9 +37,13 @@ export default function ReaderScreen() {
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const catalogDocument = findDocument(slug);
   const source = catalogDocument ? findReaderSource(catalogDocument.slug) : undefined;
+  const readerScrollRef = useRef<ScrollView>(null);
+  const paragraphListOffsetRef = useRef<number | null>(null);
+  const paragraphOffsetsRef = useRef(new Map<string, number>());
   const [content, setContent] = useState<ReaderDocumentContent | null>(null);
   const [readingState, setReadingState] = useState<ReadingState>(emptyReadingState);
   const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
+  const [targetParagraphId, setTargetParagraphId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -57,15 +62,31 @@ export default function ReaderScreen() {
         if (!active) {
           return;
         }
-        setReadingState(nextState);
+
+        let resolvedState = nextState;
         setContent(cached);
         if (cached) {
+          resolvedState = withReaderStateReconciled(
+            nextState,
+            effectSource.documentSlug,
+            effectSource.language,
+            cached,
+          );
           const resumeParagraph =
-            nextState.resumeLocations[
+            resolvedState.resumeLocations[
               readerStateKey(effectSource.documentSlug, effectSource.language)
             ];
           setSelectedSectionIndex(findSectionIndexForParagraph(cached, resumeParagraph) ?? 0);
+          prepareParagraphTarget(resumeParagraph);
+          if (resolvedState !== nextState) {
+            void saveReadingState(resolvedState).catch(() => {
+              if (active) {
+                setError('Stored reader state could not be updated.');
+              }
+            });
+          }
         }
+        setReadingState(resolvedState);
         setLoading(false);
       },
       () => {
@@ -109,28 +130,49 @@ export default function ReaderScreen() {
     await saveReadingState(next);
   }
 
+  function prepareParagraphTarget(paragraphId: string | undefined) {
+    paragraphListOffsetRef.current = null;
+    paragraphOffsetsRef.current.clear();
+    setTargetParagraphId(paragraphId ?? null);
+  }
+
+  function scrollToTargetParagraph(paragraphId: string) {
+    const paragraphListOffset = paragraphListOffsetRef.current;
+    const paragraphOffset = paragraphOffsetsRef.current.get(paragraphId);
+    if (paragraphListOffset === null || paragraphOffset === undefined) {
+      return;
+    }
+
+    readerScrollRef.current?.scrollTo({
+      animated: true,
+      y: Math.max(0, paragraphListOffset + paragraphOffset - 16),
+    });
+    setTargetParagraphId((current) => (current === paragraphId ? null : current));
+  }
+
   async function download() {
     setDownloading(true);
     setError(null);
     try {
       const nextContent = await downloadReaderDocument(selectedSource);
+      let nextState = withReaderStateReconciled(
+        readingState,
+        selectedSource.documentSlug,
+        selectedSource.language,
+        nextContent,
+      );
+      if (nextState.statuses[selectedSource.documentSlug] !== 'finished') {
+        nextState = withReadingStatus(nextState, selectedSource.documentSlug, 'reading');
+      }
+
+      const resumeParagraph =
+        nextState.resumeLocations[
+          readerStateKey(selectedSource.documentSlug, selectedSource.language)
+        ];
       setContent(nextContent);
       setQuery('');
-      setSelectedSectionIndex(0);
-
-      const firstParagraph = nextContent.sections[0]?.paragraphs[0];
-      let nextState =
-        readingState.statuses[selectedSource.documentSlug] === 'finished'
-          ? readingState
-          : withReadingStatus(readingState, selectedSource.documentSlug, 'reading');
-      if (firstParagraph) {
-        nextState = withResumeLocation(
-          nextState,
-          selectedSource.documentSlug,
-          selectedSource.language,
-          firstParagraph.id,
-        );
-      }
+      setSelectedSectionIndex(findSectionIndexForParagraph(nextContent, resumeParagraph) ?? 0);
+      prepareParagraphTarget(resumeParagraph);
       await persist(nextState);
     } catch (downloadError) {
       setError(
@@ -150,6 +192,7 @@ export default function ReaderScreen() {
     setSelectedSectionIndex(index);
     setQuery('');
     const location = paragraphId ?? content.sections[index]?.paragraphs[0]?.id;
+    prepareParagraphTarget(location);
     if (location) {
       await persist(
         withResumeLocation(
@@ -176,7 +219,11 @@ export default function ReaderScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        ref={readerScrollRef}
+        contentContainerStyle={styles.page}
+        keyboardShouldPersistTaps="handled"
+      >
         <Pressable
           accessibilityRole="button"
           hitSlop={10}
@@ -327,7 +374,15 @@ export default function ReaderScreen() {
                 </ScrollView>
 
                 <Text style={styles.readerHeading}>{selectedSection.heading}</Text>
-                <View style={styles.paragraphs}>
+                <View
+                  onLayout={(event) => {
+                    paragraphListOffsetRef.current = event.nativeEvent.layout.y;
+                    if (targetParagraphId) {
+                      scrollToTargetParagraph(targetParagraphId);
+                    }
+                  }}
+                  style={styles.paragraphs}
+                >
                   {selectedSection.paragraphs.map((paragraph) => {
                     const bookmarkKey = paragraphBookmarkKey(
                       selectedSource.documentSlug,
@@ -336,7 +391,19 @@ export default function ReaderScreen() {
                     );
                     const bookmarked = readingState.paragraphBookmarks.includes(bookmarkKey);
                     return (
-                      <View key={paragraph.id} style={styles.paragraphBlock}>
+                      <View
+                        key={paragraph.id}
+                        onLayout={(event) => {
+                          paragraphOffsetsRef.current.set(
+                            paragraph.id,
+                            event.nativeEvent.layout.y,
+                          );
+                          if (targetParagraphId === paragraph.id) {
+                            scrollToTargetParagraph(paragraph.id);
+                          }
+                        }}
+                        style={styles.paragraphBlock}
+                      >
                         <Text style={styles.paragraphText}>{paragraph.text}</Text>
                         <Pressable
                           accessibilityLabel={
