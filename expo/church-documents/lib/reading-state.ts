@@ -1,10 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import type { ReaderLanguage } from './reader-content';
+
 export type ReadingStatus = 'unread' | 'reading' | 'finished';
 
 export type ReadingState = {
   bookmarks: readonly string[];
   statuses: Readonly<Record<string, ReadingStatus>>;
+  paragraphBookmarks: readonly string[];
+  resumeLocations: Readonly<Record<string, string>>;
 };
 
 const storageKey = 'church-documents:reading-state:v1';
@@ -12,6 +16,8 @@ const storageKey = 'church-documents:reading-state:v1';
 export const emptyReadingState: ReadingState = {
   bookmarks: [],
   statuses: {},
+  paragraphBookmarks: [],
+  resumeLocations: {},
 };
 
 function isReadingStatus(value: unknown): value is ReadingStatus {
@@ -32,11 +38,12 @@ function parseReadingState(value: string | null): ReadingState {
     const candidate = parsed as {
       bookmarks?: unknown;
       statuses?: unknown;
+      paragraphBookmarks?: unknown;
+      resumeLocations?: unknown;
     };
 
-    const bookmarks = Array.isArray(candidate.bookmarks)
-      ? candidate.bookmarks.filter((item): item is string => typeof item === 'string')
-      : [];
+    const bookmarks = stringArray(candidate.bookmarks);
+    const paragraphBookmarks = stringArray(candidate.paragraphBookmarks);
 
     const statuses: Record<string, ReadingStatus> = {};
     if (candidate.statuses && typeof candidate.statuses === 'object') {
@@ -47,9 +54,20 @@ function parseReadingState(value: string | null): ReadingState {
       }
     }
 
+    const resumeLocations: Record<string, string> = {};
+    if (candidate.resumeLocations && typeof candidate.resumeLocations === 'object') {
+      for (const [key, paragraphId] of Object.entries(candidate.resumeLocations)) {
+        if (typeof paragraphId === 'string' && paragraphId.length > 0) {
+          resumeLocations[key] = paragraphId;
+        }
+      }
+    }
+
     return {
-      bookmarks: [...new Set(bookmarks)].sort(),
+      bookmarks,
       statuses,
+      paragraphBookmarks,
+      resumeLocations,
     };
   } catch {
     return emptyReadingState;
@@ -65,16 +83,9 @@ export async function saveReadingState(state: ReadingState): Promise<void> {
 }
 
 export function withBookmarkToggled(state: ReadingState, slug: string): ReadingState {
-  const bookmarks = new Set(state.bookmarks);
-  if (bookmarks.has(slug)) {
-    bookmarks.delete(slug);
-  } else {
-    bookmarks.add(slug);
-  }
-
   return {
     ...state,
-    bookmarks: [...bookmarks].sort(),
+    bookmarks: toggleSorted(state.bookmarks, slug),
   };
 }
 
@@ -90,4 +101,62 @@ export function withReadingStatus(
       [slug]: status,
     },
   };
+}
+
+export function readerStateKey(slug: string, language: ReaderLanguage) {
+  return `${slug}:${language}`;
+}
+
+export function paragraphBookmarkKey(
+  slug: string,
+  language: ReaderLanguage,
+  paragraphId: string,
+) {
+  return `${readerStateKey(slug, language)}:${paragraphId}`;
+}
+
+export function withParagraphBookmarkToggled(
+  state: ReadingState,
+  slug: string,
+  language: ReaderLanguage,
+  paragraphId: string,
+): ReadingState {
+  return {
+    ...state,
+    paragraphBookmarks: toggleSorted(
+      state.paragraphBookmarks,
+      paragraphBookmarkKey(slug, language, paragraphId),
+    ),
+  };
+}
+
+export function withResumeLocation(
+  state: ReadingState,
+  slug: string,
+  language: ReaderLanguage,
+  paragraphId: string,
+): ReadingState {
+  return {
+    ...state,
+    resumeLocations: {
+      ...state.resumeLocations,
+      [readerStateKey(slug, language)]: paragraphId,
+    },
+  };
+}
+
+function stringArray(value: unknown) {
+  return Array.isArray(value)
+    ? [...new Set(value.filter((item): item is string => typeof item === 'string'))].sort()
+    : [];
+}
+
+function toggleSorted(values: readonly string[], value: string) {
+  const next = new Set(values);
+  if (next.has(value)) {
+    next.delete(value);
+  } else {
+    next.add(value);
+  }
+  return [...next].sort();
 }
