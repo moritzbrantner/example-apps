@@ -24,26 +24,53 @@ test('parses reader HTML into stable ordered sections and paragraphs', () => {
   assert.equal(content.sourceRevision, '42');
   assert.deepEqual(
     content.sections.map((section) => ({
-      id: section.id,
       heading: section.heading,
-      paragraphs: section.paragraphs.map((paragraph) => [paragraph.id, paragraph.text]),
+      paragraphs: section.paragraphs.map((paragraph) => paragraph.text),
     })),
     [
       {
-        id: 'section-1',
         heading: 'First section',
-        paragraphs: [
-          ['section-1-paragraph-1', 'Alpha & beta.'],
-          ['section-1-paragraph-2', 'Second paragraph.'],
-        ],
+        paragraphs: ['Alpha & beta.', 'Second paragraph.'],
       },
       {
-        id: 'section-2',
         heading: 'Next',
-        paragraphs: [['section-2-paragraph-1', 'Gamma.']],
+        paragraphs: ['Gamma.'],
       },
     ],
   );
+  assert.match(content.sections[0].id, /^section-[0-9a-f]{8}$/);
+  assert.match(content.sections[0].paragraphs[0].id, /^paragraph-[0-9a-f]{8}$/);
+});
+
+test('keeps paragraph IDs stable when unrelated source blocks are inserted or reordered', () => {
+  const original = parseReaderHtml(
+    source,
+    '<h2>Work</h2><p>Dignity of work.</p><p>Justice in society.</p><h2>Property</h2><p>Property and work.</p>',
+    '2026-09-13T00:00:00.000Z',
+    '42',
+  );
+  const updated = parseReaderHtml(
+    source,
+    '<h2>Preface</h2><p>New introduction.</p><h2>Property</h2><p>Property and work.</p><h2>Work</h2><p>New opening.</p><p>Dignity of work.</p><p>Justice in society.</p>',
+    '2026-09-14T00:00:00.000Z',
+    '43',
+  );
+
+  const originalDignity = original.sections
+    .flatMap((section) => section.paragraphs)
+    .find((paragraph) => paragraph.text === 'Dignity of work.');
+  const updatedDignity = updated.sections
+    .flatMap((section) => section.paragraphs)
+    .find((paragraph) => paragraph.text === 'Dignity of work.');
+  const originalProperty = original.sections
+    .flatMap((section) => section.paragraphs)
+    .find((paragraph) => paragraph.text === 'Property and work.');
+  const updatedProperty = updated.sections
+    .flatMap((section) => section.paragraphs)
+    .find((paragraph) => paragraph.text === 'Property and work.');
+
+  assert.equal(updatedDignity?.id, originalDignity?.id);
+  assert.equal(updatedProperty?.id, originalProperty?.id);
 });
 
 test('search preserves document order and returns paragraph locations', () => {
@@ -56,10 +83,10 @@ test('search preserves document order and returns paragraph locations', () => {
 
   const results = searchReaderDocument(content, ' work ');
   assert.deepEqual(
-    results.map((result) => result.paragraph.id),
-    ['section-1-paragraph-1', 'section-1-paragraph-2', 'section-2-paragraph-1'],
+    results.map((result) => result.paragraph.text),
+    ['Dignity of work.', 'Justice in society.', 'Property and work.'],
   );
-  assert.equal(findSectionIndexForParagraph(content, 'section-2-paragraph-1'), 1);
+  assert.equal(findSectionIndexForParagraph(content, content.sections[1].paragraphs[0].id), 1);
   assert.equal(findSectionIndexForParagraph(content, 'missing'), undefined);
 });
 
