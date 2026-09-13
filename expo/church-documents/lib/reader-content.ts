@@ -65,8 +65,8 @@ export function parseReaderHtml(
   sourceRevision: string | null,
 ): ReaderDocumentContent {
   const sections: { id: string; heading: string; paragraphs: ReaderParagraph[] }[] = [];
+  const identityCounts = new Map<string, number>();
   let current: { id: string; heading: string; paragraphs: ReaderParagraph[] } | null = null;
-  let nextSectionNumber = 1;
 
   const blocks = html.matchAll(/<(h[2-4]|p)\b[^>]*>([\s\S]*?)<\/\1>/gi);
   for (const block of blocks) {
@@ -81,25 +81,23 @@ export function parseReaderHtml(
         sections.push(current);
       }
       current = {
-        id: `section-${nextSectionNumber}`,
+        id: stableContentId('section', text, identityCounts),
         heading: text,
         paragraphs: [],
       };
-      nextSectionNumber += 1;
       continue;
     }
 
     if (!current) {
       current = {
-        id: `section-${nextSectionNumber}`,
+        id: stableContentId('section', 'Document', identityCounts),
         heading: 'Document',
         paragraphs: [],
       };
-      nextSectionNumber += 1;
     }
 
     current.paragraphs.push({
-      id: `${current.id}-paragraph-${current.paragraphs.length + 1}`,
+      id: stableContentId('paragraph', `${current.heading}\u0000${text}`, identityCounts),
       text,
     });
   }
@@ -158,6 +156,20 @@ export function findSectionIndexForParagraph(
     section.paragraphs.some((paragraph) => paragraph.id === paragraphId),
   );
   return index >= 0 ? index : undefined;
+}
+
+function stableContentId(prefix: string, value: string, identityCounts: Map<string, number>) {
+  const normalized = normalize(value);
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < normalized.length; index += 1) {
+    hash ^= normalized.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+
+  const baseId = `${prefix}-${hash.toString(16).padStart(8, '0')}`;
+  const occurrence = (identityCounts.get(baseId) ?? 0) + 1;
+  identityCounts.set(baseId, occurrence);
+  return occurrence === 1 ? baseId : `${baseId}-${occurrence}`;
 }
 
 function cleanHtmlFragment(fragment: string) {
