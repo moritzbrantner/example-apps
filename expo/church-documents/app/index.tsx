@@ -29,14 +29,17 @@ export default function ChurchDocumentsScreen() {
   const [query, setQuery] = useState('');
   const [family, setFamily] = useState<DocumentFamilyFilter>('All');
   const [readingState, setReadingState] = useState<ReadingState>(emptyReadingState);
+  const [readingStateHydrated, setReadingStateHydrated] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      setReadingStateHydrated(false);
 
       void loadReadingState().then((next) => {
         if (active) {
           setReadingState(next);
+          setReadingStateHydrated(true);
         }
       });
 
@@ -50,6 +53,10 @@ export default function ChurchDocumentsScreen() {
 
   async function toggleBookmark(event: GestureResponderEvent, slug: string) {
     event.stopPropagation();
+    if (!readingStateHydrated) {
+      return;
+    }
+
     const next = withBookmarkToggled(readingState, slug);
     setReadingState(next);
     await saveReadingState(next);
@@ -108,6 +115,7 @@ export default function ChurchDocumentsScreen() {
         <View style={styles.list}>
           {documents.map((document) => (
             <DocumentRow
+              bookmarkEnabled={readingStateHydrated}
               bookmarked={readingState.bookmarks.includes(document.slug)}
               document={document}
               key={document.slug}
@@ -133,11 +141,13 @@ export default function ChurchDocumentsScreen() {
 }
 
 function DocumentRow({
+  bookmarkEnabled,
   bookmarked,
   document,
   onBookmark,
   status,
 }: {
+  bookmarkEnabled: boolean;
   bookmarked: boolean;
   document: ChurchDocument;
   onBookmark: (event: GestureResponderEvent, slug: string) => void;
@@ -161,9 +171,11 @@ function DocumentRow({
         <Pressable
           accessibilityLabel={bookmarked ? `Remove ${document.title} bookmark` : `Bookmark ${document.title}`}
           accessibilityRole="button"
+          accessibilityState={{ disabled: !bookmarkEnabled }}
+          disabled={!bookmarkEnabled}
           hitSlop={10}
           onPress={(event) => void onBookmark(event, document.slug)}
-          style={styles.bookmarkButton}
+          style={[styles.bookmarkButton, !bookmarkEnabled && styles.bookmarkButtonDisabled]}
         >
           <Text style={styles.bookmarkText}>{bookmarked ? 'Saved' : 'Save'}</Text>
         </Pressable>
@@ -302,6 +314,9 @@ const styles = StyleSheet.create({
   bookmarkButton: {
     paddingHorizontal: 4,
     paddingVertical: 3,
+  },
+  bookmarkButtonDisabled: {
+    opacity: 0.5,
   },
   bookmarkText: {
     color: '#7c2d12',
