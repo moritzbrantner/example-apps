@@ -62,8 +62,9 @@ export default function DocumentDetailScreen() {
     );
   }
 
-  const bookmarked = readingState.bookmarks.includes(document.slug);
-  const status = readingState.statuses[document.slug] ?? 'unread';
+  const selectedDocument = document;
+  const bookmarked = readingState.bookmarks.includes(selectedDocument.slug);
+  const status = readingState.statuses[selectedDocument.slug] ?? 'unread';
 
   async function updateState(next: ReadingState) {
     setReadingState(next);
@@ -72,7 +73,7 @@ export default function DocumentDetailScreen() {
 
   async function openOfficialSource() {
     try {
-      await Linking.openURL(document.officialSourceUrl);
+      await Linking.openURL(selectedDocument.officialSourceUrl);
     } catch {
       Alert.alert('Could not open source', 'The official document could not be opened on this device.');
     }
@@ -87,19 +88,19 @@ export default function DocumentDetailScreen() {
         </Pressable>
 
         <Text style={styles.meta}>
-          {document.family} · {formatDate(document.publishedOn)}
+          {selectedDocument.family} · {formatDate(selectedDocument.publishedOn)}
         </Text>
-        <Text style={styles.title}>{document.title}</Text>
-        <Text style={styles.subtitle}>{document.subtitle}</Text>
-        <Text style={styles.issuer}>{document.issuedBy}</Text>
+        <Text style={styles.title}>{selectedDocument.title}</Text>
+        <Text style={styles.subtitle}>{selectedDocument.subtitle}</Text>
+        <Text style={styles.issuer}>{selectedDocument.issuedBy}</Text>
 
         <View style={styles.rule} />
 
         <Text style={styles.sectionLabel}>Overview</Text>
-        <Text style={styles.summary}>{document.summary}</Text>
+        <Text style={styles.summary}>{selectedDocument.summary}</Text>
 
         <View style={styles.topics}>
-          {document.topics.map((topic) => (
+          {selectedDocument.topics.map((topic) => (
             <View key={topic} style={styles.topic}>
               <Text style={styles.topicText}>{topic}</Text>
             </View>
@@ -117,7 +118,9 @@ export default function DocumentDetailScreen() {
                 accessibilityRole="button"
                 key={option.value}
                 onPress={() =>
-                  void updateState(withReadingStatus(readingState, document.slug, option.value))
+                  void updateState(
+                    withReadingStatus(readingState, selectedDocument.slug, option.value),
+                  )
                 }
                 style={[styles.statusButton, selected && styles.statusButtonSelected]}
               >
@@ -139,7 +142,9 @@ export default function DocumentDetailScreen() {
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            onPress={() => void updateState(withBookmarkToggled(readingState, document.slug))}
+            onPress={() =>
+              void updateState(withBookmarkToggled(readingState, selectedDocument.slug))
+            }
             style={styles.secondaryButton}
           >
             <Text style={styles.secondaryButtonText}>{bookmarked ? 'Remove bookmark' : 'Bookmark'}</Text>
