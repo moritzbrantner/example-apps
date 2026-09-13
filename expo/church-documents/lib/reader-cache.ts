@@ -91,7 +91,13 @@ function isReaderDocumentContent(value: unknown): value is ReaderDocumentContent
     return false;
   }
 
-  const candidate = value as Partial<ReaderDocumentContent>;
+  const candidate = value as {
+    documentSlug?: unknown;
+    language?: unknown;
+    sourcePageUrl?: unknown;
+    fetchedAt?: unknown;
+    sections?: unknown;
+  };
   if (
     typeof candidate.documentSlug !== 'string' ||
     candidate.language !== 'en' ||
@@ -103,15 +109,28 @@ function isReaderDocumentContent(value: unknown): value is ReaderDocumentContent
     return false;
   }
 
-  return candidate.sections.every(
-    (section) =>
-      section &&
-      typeof section.id === 'string' &&
-      typeof section.heading === 'string' &&
-      Array.isArray(section.paragraphs) &&
-      section.paragraphs.every(
-        (paragraph) =>
-          paragraph && typeof paragraph.id === 'string' && typeof paragraph.text === 'string',
-      ),
-  );
+  return candidate.sections.every((sectionValue: unknown) => {
+    if (!sectionValue || typeof sectionValue !== 'object') {
+      return false;
+    }
+    const section = sectionValue as {
+      id?: unknown;
+      heading?: unknown;
+      paragraphs?: unknown;
+    };
+    if (
+      typeof section.id !== 'string' ||
+      typeof section.heading !== 'string' ||
+      !Array.isArray(section.paragraphs)
+    ) {
+      return false;
+    }
+    return section.paragraphs.every((paragraphValue: unknown) => {
+      if (!paragraphValue || typeof paragraphValue !== 'object') {
+        return false;
+      }
+      const paragraph = paragraphValue as { id?: unknown; text?: unknown };
+      return typeof paragraph.id === 'string' && typeof paragraph.text === 'string';
+    });
+  });
 }
