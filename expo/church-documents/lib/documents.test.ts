@@ -21,6 +21,7 @@ describe('church document catalog', () => {
     const results = filterDocuments('Church', 'All');
 
     expect(results.map((document) => document.slug)).toEqual([
+      'sacrosanctum-concilium',
       'lumen-gentium',
       'dei-verbum',
     ]);

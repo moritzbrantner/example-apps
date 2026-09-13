@@ -88,7 +88,7 @@ export const churchDocuments: readonly ChurchDocument[] = [
 ];
 
 function normalized(value: string) {
-  return value.trim().toLocaleLowerCase();
+  return value.trim().toLowerCase();
 }
 
 export function findDocument(slug: string | undefined) {
@@ -118,7 +118,7 @@ export function filterDocuments(
       ...document.topics,
     ]
       .join(' ')
-      .toLocaleLowerCase();
+      .toLowerCase();
 
     return searchable.includes(needle);
   });
