@@ -11,7 +11,9 @@ import {
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+
 import { findDocument } from '../../lib/documents';
+import { findReaderSource } from '../../lib/reader-content';
 import {
   emptyReadingState,
   loadReadingState,
@@ -36,13 +38,11 @@ export default function DocumentDetailScreen() {
   useFocusEffect(
     useCallback(() => {
       let active = true;
-
       void loadReadingState().then((next) => {
         if (active) {
           setReadingState(next);
         }
       });
-
       return () => {
         active = false;
       };
@@ -63,6 +63,7 @@ export default function DocumentDetailScreen() {
   }
 
   const selectedDocument = document;
+  const readerSource = findReaderSource(selectedDocument.slug);
   const bookmarked = readingState.bookmarks.includes(selectedDocument.slug);
   const status = readingState.statuses[selectedDocument.slug] ?? 'unread';
 
@@ -87,15 +88,12 @@ export default function DocumentDetailScreen() {
           <Text style={styles.backText}>Back</Text>
         </Pressable>
 
-        <Text style={styles.meta}>
-          {selectedDocument.family} · {formatDate(selectedDocument.publishedOn)}
-        </Text>
+        <Text style={styles.meta}>{selectedDocument.family} · {formatDate(selectedDocument.publishedOn)}</Text>
         <Text style={styles.title}>{selectedDocument.title}</Text>
         <Text style={styles.subtitle}>{selectedDocument.subtitle}</Text>
         <Text style={styles.issuer}>{selectedDocument.issuedBy}</Text>
 
         <View style={styles.rule} />
-
         <Text style={styles.sectionLabel}>Overview</Text>
         <Text style={styles.summary}>{selectedDocument.summary}</Text>
 
@@ -108,7 +106,6 @@ export default function DocumentDetailScreen() {
         </View>
 
         <View style={styles.rule} />
-
         <Text style={styles.sectionLabel}>Reading status</Text>
         <View style={styles.statusGroup}>
           {readingStatuses.map((option) => {
@@ -117,42 +114,39 @@ export default function DocumentDetailScreen() {
               <Pressable
                 accessibilityRole="button"
                 key={option.value}
-                onPress={() =>
-                  void updateState(
-                    withReadingStatus(readingState, selectedDocument.slug, option.value),
-                  )
-                }
+                onPress={() => void updateState(withReadingStatus(readingState, selectedDocument.slug, option.value))}
                 style={[styles.statusButton, selected && styles.statusButtonSelected]}
               >
-                <Text style={[styles.statusText, selected && styles.statusTextSelected]}>
-                  {option.label}
-                </Text>
+                <Text style={[styles.statusText, selected && styles.statusTextSelected]}>{option.label}</Text>
               </Pressable>
             );
           })}
         </View>
 
         <View style={styles.actions}>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => void openOfficialSource()}
-            style={styles.primaryButton}
-          >
-            <Text style={styles.primaryButtonText}>Open official text</Text>
+          {readerSource ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push({ pathname: '/document/[slug]/read', params: { slug: selectedDocument.slug } })}
+              style={styles.primaryButton}
+            >
+              <Text style={styles.primaryButtonText}>Read in app</Text>
+            </Pressable>
+          ) : null}
+          <Pressable accessibilityRole="link" onPress={() => void openOfficialSource()} style={readerSource ? styles.secondaryButton : styles.primaryButton}>
+            <Text style={readerSource ? styles.secondaryButtonText : styles.primaryButtonText}>Open official text</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            onPress={() =>
-              void updateState(withBookmarkToggled(readingState, selectedDocument.slug))
-            }
+            onPress={() => void updateState(withBookmarkToggled(readingState, selectedDocument.slug))}
             style={styles.secondaryButton}
           >
-            <Text style={styles.secondaryButtonText}>{bookmarked ? 'Remove bookmark' : 'Bookmark'}</Text>
+            <Text style={styles.secondaryButtonText}>{bookmarked ? 'Remove document bookmark' : 'Bookmark document'}</Text>
           </Pressable>
         </View>
 
         <Text style={styles.sourceNote}>
-          The Vatican-hosted document is the authoritative source. This app stores only catalog metadata, an app-authored overview, and your local reading state in this slice.
+          The Vatican-hosted document remains the canonical reference. In-app text is enabled only for separately reviewed reader sources with explicit provenance.
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -169,150 +163,30 @@ function formatDate(value: string) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#f7f4ef',
-  },
-  page: {
-    width: '100%',
-    maxWidth: 720,
-    alignSelf: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 48,
-  },
-  notFound: {
-    flex: 1,
-    gap: 20,
-    justifyContent: 'center',
-    padding: 24,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 28,
-    paddingVertical: 4,
-  },
-  backText: {
-    color: '#7c2d12',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  meta: {
-    color: '#7c2d12',
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  title: {
-    color: '#1c1917',
-    fontSize: 36,
-    fontWeight: '800',
-    letterSpacing: -0.8,
-    marginTop: 8,
-  },
-  subtitle: {
-    color: '#44403c',
-    fontSize: 19,
-    fontWeight: '600',
-    lineHeight: 27,
-    marginTop: 8,
-  },
-  issuer: {
-    color: '#78716c',
-    fontSize: 15,
-    marginTop: 8,
-  },
-  rule: {
-    backgroundColor: '#d6d3d1',
-    height: 1,
-    marginVertical: 26,
-  },
-  sectionLabel: {
-    color: '#1c1917',
-    fontSize: 18,
-    fontWeight: '800',
-    marginBottom: 10,
-  },
-  summary: {
-    color: '#44403c',
-    fontSize: 17,
-    lineHeight: 27,
-  },
-  topics: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 18,
-  },
-  topic: {
-    backgroundColor: '#ede7de',
-    borderRadius: 999,
-    paddingHorizontal: 11,
-    paddingVertical: 7,
-  },
-  topicText: {
-    color: '#44403c',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  statusGroup: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  statusButton: {
-    borderColor: '#d6d3d1',
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-  },
-  statusButtonSelected: {
-    backgroundColor: '#292524',
-    borderColor: '#292524',
-  },
-  statusText: {
-    color: '#57534e',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  statusTextSelected: {
-    color: '#fffdfa',
-  },
-  actions: {
-    gap: 10,
-    marginTop: 30,
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#7c2d12',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  primaryButtonText: {
-    color: '#fffdfa',
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    borderColor: '#a8a29e',
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-  },
-  secondaryButtonText: {
-    color: '#44403c',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  sourceNote: {
-    color: '#78716c',
-    fontSize: 12,
-    lineHeight: 19,
-    marginTop: 24,
-  },
+  safeArea: { flex: 1, backgroundColor: '#f7f4ef' },
+  page: { width: '100%', maxWidth: 720, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 48 },
+  notFound: { flex: 1, gap: 20, justifyContent: 'center', padding: 24 },
+  backButton: { alignSelf: 'flex-start', marginBottom: 28, paddingVertical: 4 },
+  backText: { color: '#7c2d12', fontSize: 15, fontWeight: '700' },
+  meta: { color: '#7c2d12', fontSize: 13, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
+  title: { color: '#1c1917', fontSize: 36, fontWeight: '800', letterSpacing: -0.8, marginTop: 8 },
+  subtitle: { color: '#44403c', fontSize: 19, fontWeight: '600', lineHeight: 27, marginTop: 8 },
+  issuer: { color: '#78716c', fontSize: 15, marginTop: 8 },
+  rule: { backgroundColor: '#d6d3d1', height: 1, marginVertical: 26 },
+  sectionLabel: { color: '#1c1917', fontSize: 18, fontWeight: '800', marginBottom: 10 },
+  summary: { color: '#44403c', fontSize: 17, lineHeight: 27 },
+  topics: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 18 },
+  topic: { backgroundColor: '#ede7de', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7 },
+  topicText: { color: '#44403c', fontSize: 13, fontWeight: '600' },
+  statusGroup: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  statusButton: { borderColor: '#d6d3d1', borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 9 },
+  statusButtonSelected: { backgroundColor: '#292524', borderColor: '#292524' },
+  statusText: { color: '#57534e', fontSize: 14, fontWeight: '600' },
+  statusTextSelected: { color: '#fffdfa' },
+  actions: { gap: 10, marginTop: 30 },
+  primaryButton: { alignItems: 'center', backgroundColor: '#7c2d12', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  primaryButtonText: { color: '#fffdfa', fontSize: 15, fontWeight: '800' },
+  secondaryButton: { alignItems: 'center', borderColor: '#a8a29e', borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 13 },
+  secondaryButtonText: { color: '#44403c', fontSize: 15, fontWeight: '700' },
+  sourceNote: { color: '#78716c', fontSize: 12, lineHeight: 19, marginTop: 24 },
 });
