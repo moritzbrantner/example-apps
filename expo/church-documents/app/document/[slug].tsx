@@ -34,27 +34,41 @@ export default function DocumentDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const document = findDocument(slug);
   const [readingState, setReadingState] = useState<ReadingState>(emptyReadingState);
+  const [readingStateHydrated, setReadingStateHydrated] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      setReadingStateHydrated(false);
+
       void loadReadingState().then((next) => {
         if (active) {
           setReadingState(next);
+          setReadingStateHydrated(true);
         }
       });
+
       return () => {
         active = false;
       };
     }, []),
   );
 
+  function backToCatalog() {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/');
+  }
+
   if (!document) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.notFound}>
           <Text style={styles.title}>Document not found</Text>
-          <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.primaryButton}>
+          <Pressable accessibilityRole="button" onPress={backToCatalog} style={styles.primaryButton}>
             <Text style={styles.primaryButtonText}>Back to catalog</Text>
           </Pressable>
         </View>
@@ -68,6 +82,10 @@ export default function DocumentDetailScreen() {
   const status = readingState.statuses[selectedDocument.slug] ?? 'unread';
 
   async function updateState(next: ReadingState) {
+    if (!readingStateHydrated) {
+      return;
+    }
+
     setReadingState(next);
     await saveReadingState(next);
   }
@@ -84,7 +102,7 @@ export default function DocumentDetailScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.page}>
-        <Pressable accessibilityRole="button" hitSlop={10} onPress={() => router.back()} style={styles.backButton}>
+        <Pressable accessibilityRole="button" hitSlop={10} onPress={backToCatalog} style={styles.backButton}>
           <Text style={styles.backText}>Back</Text>
         </Pressable>
 
@@ -113,9 +131,15 @@ export default function DocumentDetailScreen() {
             return (
               <Pressable
                 accessibilityRole="button"
+                accessibilityState={{ disabled: !readingStateHydrated, selected }}
+                disabled={!readingStateHydrated}
                 key={option.value}
                 onPress={() => void updateState(withReadingStatus(readingState, selectedDocument.slug, option.value))}
-                style={[styles.statusButton, selected && styles.statusButtonSelected]}
+                style={[
+                  styles.statusButton,
+                  selected && styles.statusButtonSelected,
+                  !readingStateHydrated && styles.mutationControlDisabled,
+                ]}
               >
                 <Text style={[styles.statusText, selected && styles.statusTextSelected]}>{option.label}</Text>
               </Pressable>
@@ -133,13 +157,22 @@ export default function DocumentDetailScreen() {
               <Text style={styles.primaryButtonText}>Read in app</Text>
             </Pressable>
           ) : null}
-          <Pressable accessibilityRole="link" onPress={() => void openOfficialSource()} style={readerSource ? styles.secondaryButton : styles.primaryButton}>
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => void openOfficialSource()}
+            style={readerSource ? styles.secondaryButton : styles.primaryButton}
+          >
             <Text style={readerSource ? styles.secondaryButtonText : styles.primaryButtonText}>Open official text</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
+            accessibilityState={{ disabled: !readingStateHydrated }}
+            disabled={!readingStateHydrated}
             onPress={() => void updateState(withBookmarkToggled(readingState, selectedDocument.slug))}
-            style={styles.secondaryButton}
+            style={[
+              styles.secondaryButton,
+              !readingStateHydrated && styles.mutationControlDisabled,
+            ]}
           >
             <Text style={styles.secondaryButtonText}>{bookmarked ? 'Remove document bookmark' : 'Bookmark document'}</Text>
           </Pressable>
@@ -188,5 +221,6 @@ const styles = StyleSheet.create({
   primaryButtonText: { color: '#fffdfa', fontSize: 15, fontWeight: '800' },
   secondaryButton: { alignItems: 'center', borderColor: '#a8a29e', borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 13 },
   secondaryButtonText: { color: '#44403c', fontSize: 15, fontWeight: '700' },
+  mutationControlDisabled: { opacity: 0.5 },
   sourceNote: { color: '#78716c', fontSize: 12, lineHeight: 19, marginTop: 24 },
 });
