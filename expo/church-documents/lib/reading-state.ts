@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import type { ReaderLanguage } from './reader-content';
+import type { ReaderDocumentContent, ReaderLanguage } from './reader-content';
 
 export type ReadingStatus = 'unread' | 'reading' | 'finished';
 
@@ -142,6 +142,49 @@ export function withResumeLocation(
       ...state.resumeLocations,
       [readerStateKey(slug, language)]: paragraphId,
     },
+  };
+}
+
+export function withReaderStateReconciled(
+  state: ReadingState,
+  slug: string,
+  language: ReaderLanguage,
+  content: ReaderDocumentContent,
+): ReadingState {
+  const stateKey = readerStateKey(slug, language);
+  const bookmarkPrefix = `${stateKey}:`;
+  const validParagraphIds = new Set(
+    content.sections.flatMap((section) => section.paragraphs.map((paragraph) => paragraph.id)),
+  );
+  const paragraphBookmarks = state.paragraphBookmarks.filter((bookmark) => {
+    if (!bookmark.startsWith(bookmarkPrefix)) {
+      return true;
+    }
+    return validParagraphIds.has(bookmark.slice(bookmarkPrefix.length));
+  });
+
+  const previousResume = state.resumeLocations[stateKey];
+  const nextResume =
+    previousResume && validParagraphIds.has(previousResume)
+      ? previousResume
+      : content.sections[0]?.paragraphs[0]?.id;
+
+  const bookmarksChanged = paragraphBookmarks.length !== state.paragraphBookmarks.length;
+  if (!bookmarksChanged && nextResume === previousResume) {
+    return state;
+  }
+
+  const resumeLocations = { ...state.resumeLocations };
+  if (nextResume) {
+    resumeLocations[stateKey] = nextResume;
+  } else {
+    delete resumeLocations[stateKey];
+  }
+
+  return {
+    ...state,
+    paragraphBookmarks,
+    resumeLocations,
   };
 }
 
