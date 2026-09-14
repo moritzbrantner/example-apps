@@ -214,8 +214,11 @@ export class MeetingHostingService {
     if (!session || session.accountId !== null) throw new InvalidGuestSessionError();
     const versioned = await this.meetings.read(session.meetingId);
     if (!versioned) throw new MeetingNotFoundError(session.meetingId);
-    if (!versioned.meeting.participants.some((participant) => participant.id === session.participantId)) {
-      throw new InvalidGuestSessionError('Guest participant no longer exists');
+    const participant = versioned.meeting.participants.find(
+      (candidate) => candidate.id === session.participantId,
+    );
+    if (!participant || participant.identity.kind !== 'guest') {
+      throw new InvalidGuestSessionError('Guest participant is no longer guest-accessible');
     }
     return { ...versioned, participantId: session.participantId };
   }
