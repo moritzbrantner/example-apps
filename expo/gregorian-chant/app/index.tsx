@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { CHANTS } from "../lib/catalog";
 import { searchChants } from "../lib/domain";
-import { gabcLatinText, parseGabc } from "../lib/gabc";
+import { parseGabc } from "../lib/gabc";
 
 export default function HomeScreen() {
   const [query, setQuery] = useState("");
@@ -89,7 +89,7 @@ function ChantReader({ chant }: { chant: (typeof CHANTS)[number] }) {
       {notation && gabc ? (
         <View style={styles.notation}>
           <Text style={styles.notationLabel}>GABC · canonical source</Text>
-          <Text style={styles.notationText}>{gabcLatinText(notation.source)}</Text>
+          <Text style={styles.notationText}>{chant.latinText}</Text>
           <Text selectable style={styles.gabc}>{notation.source}</Text>
         </View>
       ) : (
