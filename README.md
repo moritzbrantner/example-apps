@@ -24,6 +24,7 @@ Concrete applications that consume and dogfood the reusable templates without be
 - [`church-documents`](expo/church-documents) — local-first Church document catalog with search, bookmarks, reading status, and provenance-preserving handoff to official texts
 - [`chores`](expo/chores) — recurring household responsibilities with rotation and explicit shareable snapshots
 - [`events`](expo/events) — event organization workboard for invitees, bring commitments, setup/general/cleanup work, and explicit shareable snapshots
+- [`meetings`](expo/meetings) — collaborative meeting scheduler with guest-first attendance polling, bring reminders, and route-aware carpool matching
 
 ### Fine arts · Expo
 
