@@ -50,6 +50,7 @@ type Edge = {
 type PairEdge = {
   offerId: string;
   requestId: string;
+  routeCost: RouteCost;
   edge: Edge;
 };
 
@@ -67,6 +68,15 @@ export function calculateCarpoolPlan(
   routeCostsInput: RouteCost[],
   policy: CarpoolPolicy = defaultCarpoolPolicy,
 ): CarpoolPlan {
+  const pairKeys = new Set<string>();
+  for (const routeCost of routeCostsInput) {
+    const key = `${routeCost.requestId}:${routeCost.offerId}`;
+    if (pairKeys.has(key)) {
+      throw new Error(`Duplicate route cost for request/offer pair: ${key}`);
+    }
+    pairKeys.add(key);
+  }
+
   const offers = [...offersInput].sort((left, right) => left.id.localeCompare(right.id));
   const requests = [...requestsInput].sort((left, right) => left.id.localeCompare(right.id));
   const routeCosts = [...routeCostsInput]
@@ -104,7 +114,12 @@ export function calculateCarpoolPlan(
     const to = offerIndex.get(routeCost.offerId);
     if (from === undefined || to === undefined) continue;
     const edge = addEdge(graph, from, to, 1, Math.round(routeCost.detourMinutes * 1000));
-    pairEdges.push({ offerId: routeCost.offerId, requestId: routeCost.requestId, edge });
+    pairEdges.push({
+      offerId: routeCost.offerId,
+      requestId: routeCost.requestId,
+      routeCost,
+      edge,
+    });
   }
 
   while (true) {
@@ -146,9 +161,6 @@ export function calculateCarpoolPlan(
     }
   }
 
-  const costByPair = new Map(
-    routeCostsInput.map((cost) => [`${cost.requestId}:${cost.offerId}`, cost] as const),
-  );
   const offerById = new Map(offers.map((offer) => [offer.id, offer]));
   const requestById = new Map(requests.map((request) => [request.id, request]));
   const matches = pairEdges
@@ -156,14 +168,13 @@ export function calculateCarpoolPlan(
     .map((pair) => {
       const offer = offerById.get(pair.offerId)!;
       const request = requestById.get(pair.requestId)!;
-      const cost = costByPair.get(`${pair.requestId}:${pair.offerId}`)!;
       return {
         offerId: pair.offerId,
         requestId: pair.requestId,
         driverParticipantId: offer.driverParticipantId,
         passengerParticipantId: request.participantId,
-        detourMinutes: cost.detourMinutes,
-        distanceKm: cost.distanceKm,
+        detourMinutes: pair.routeCost.detourMinutes,
+        distanceKm: pair.routeCost.distanceKm,
       };
     })
     .sort(
