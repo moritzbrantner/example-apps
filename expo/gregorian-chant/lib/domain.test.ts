@@ -18,7 +18,7 @@ describe("chant catalog", () => {
     const document = parseGabc(kyrie?.notation?.source ?? "");
     expect(document.mode).toBe(1);
     expect(document.headers.name).toBe("Kyrie XI");
-    expect(gabcLatinText(kyrie?.notation?.source ?? "")).toContain("Kyrie");
+    expect(gabcLatinText(kyrie?.notation?.source ?? "")).toContain("eléison");
   });
 
   test("refuses loops until a recording has authoritative timings", () => {
