@@ -91,4 +91,17 @@ describe('carpool optimizer', () => {
     expect(plan.matches).toEqual([]);
     expect(plan.unmatchedRequestIds).toEqual(['request']);
   });
+
+  test('fails closed when a routing provider returns duplicate pair costs', () => {
+    expect(() =>
+      calculateCarpoolPlan(
+        [{ id: 'offer', driverParticipantId: 'driver', seats: 1, origin: { id: 'o', label: 'O', latitude: 0, longitude: 0 } }],
+        [{ id: 'request', participantId: 'rider', pickup: { id: 'r', label: 'R', latitude: 0, longitude: 0 } }],
+        [
+          { offerId: 'offer', requestId: 'request', detourMinutes: 5, distanceKm: 3 },
+          { offerId: 'offer', requestId: 'request', detourMinutes: 25, distanceKm: 12 },
+        ],
+      ),
+    ).toThrow('Duplicate route cost');
+  });
 });
