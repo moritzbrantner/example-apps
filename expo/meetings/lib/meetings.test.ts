@@ -92,6 +92,25 @@ describe('carpool optimizer', () => {
     expect(plan.unmatchedRequestIds).toEqual(['request']);
   });
 
+  test('keeps distinct route pairs separate when ids contain separators', () => {
+    const plan = calculateCarpoolPlan(
+      [
+        { id: 'c', driverParticipantId: 'driver-c', seats: 1, origin: { id: 'o1', label: 'O1', latitude: 0, longitude: 0 } },
+        { id: 'b:c', driverParticipantId: 'driver-bc', seats: 1, origin: { id: 'o2', label: 'O2', latitude: 0, longitude: 0 } },
+      ],
+      [
+        { id: 'a:b', participantId: 'rider-ab', pickup: { id: 'r1', label: 'R1', latitude: 0, longitude: 0 } },
+        { id: 'a', participantId: 'rider-a', pickup: { id: 'r2', label: 'R2', latitude: 0, longitude: 0 } },
+      ],
+      [
+        { offerId: 'c', requestId: 'a:b', detourMinutes: 5, distanceKm: 3 },
+        { offerId: 'b:c', requestId: 'a', detourMinutes: 6, distanceKm: 4 },
+      ],
+    );
+    expect(plan.matches).toHaveLength(2);
+    expect(plan.unmatchedRequestIds).toEqual([]);
+  });
+
   test('fails closed when a routing provider returns duplicate pair costs', () => {
     expect(() =>
       calculateCarpoolPlan(
