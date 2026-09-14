@@ -68,13 +68,19 @@ export function calculateCarpoolPlan(
   routeCostsInput: RouteCost[],
   policy: CarpoolPolicy = defaultCarpoolPolicy,
 ): CarpoolPlan {
-  const pairKeys = new Set<string>();
+  const offerIdsByRequest = new Map<string, Set<string>>();
   for (const routeCost of routeCostsInput) {
-    const key = `${routeCost.requestId}:${routeCost.offerId}`;
-    if (pairKeys.has(key)) {
-      throw new Error(`Duplicate route cost for request/offer pair: ${key}`);
+    let offerIds = offerIdsByRequest.get(routeCost.requestId);
+    if (!offerIds) {
+      offerIds = new Set<string>();
+      offerIdsByRequest.set(routeCost.requestId, offerIds);
     }
-    pairKeys.add(key);
+    if (offerIds.has(routeCost.offerId)) {
+      throw new Error(
+        `Duplicate route cost for request/offer pair: ${routeCost.requestId} / ${routeCost.offerId}`,
+      );
+    }
+    offerIds.add(routeCost.offerId);
   }
 
   const offers = [...offersInput].sort((left, right) => left.id.localeCompare(right.id));
