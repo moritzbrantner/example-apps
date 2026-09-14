@@ -16,14 +16,31 @@ Collaborative meeting coordination for reusable groups and standalone meetings.
 
 ## Architecture
 
-The app starts with a CQRS-style domain boundary:
+The app uses a CQRS-style domain boundary:
 
 - `lib/commands.ts` changes meeting state and validates referenced identities/date options/items.
 - `lib/queries.ts` derives availability rankings and reminder projections.
 - `lib/carpool.ts` owns capacity-constrained assignment and exposes the routing-provider port.
-- UI code consumes those operations instead of duplicating meeting rules.
+- `lib/hosted.ts` defines versioned hosted persistence plus server-authoritative invite redemption and guest-to-account claiming.
+- `lib/hosted-memory.ts` is a deterministic adapter for tests and the static demo only; it is not presented as collaborative persistence.
+- UI code consumes domain operations instead of duplicating meeting rules.
 
-This slice deliberately does not pretend that straight-line distance is road routing. The demo feeds deterministic route-cost fixtures into the same optimizer that a real routing adapter will use.
+## Hosted collaboration contract
+
+Hosted meeting writes use optimistic versions. A stale client must receive a conflict and reload/reapply its command instead of silently overwriting another participant's change.
+
+Guest access is capability-based:
+
+1. The host creates a high-entropy, expiring invite token for one existing guest participant.
+2. Only the token digest is stored; the raw invite secret exists only in the invite link returned to the caller.
+3. Redeeming an invite is single-use and returns a separate expiring guest-session secret.
+4. Only the guest-session digest is stored.
+5. If the guest creates an account, the authenticated host binds that account to the existing participant ID. Availability, bring responsibilities, and ride state therefore remain attached without migration or duplication.
+6. A session cannot be rebound to a different account, and guest access stops being accepted after the account claim.
+
+`WebCryptoTokenAuthority` provides 256-bit random secrets and SHA-256 digests. A production host must provide durable implementations of `HostedMeetingStore` and `GuestAccessStore` (transactional database, service API, etc.); choosing a hosting/database vendor is intentionally outside the domain and is not hidden inside the Expo client.
+
+The demo still feeds deterministic route-cost fixtures into the same optimizer that a real routing adapter will use. Straight-line distance is deliberately not substituted for road routing.
 
 ## Relationship to Event Workboard
 
@@ -31,10 +48,10 @@ This slice deliberately does not pretend that straight-line distance is road rou
 
 ## Next integration slices
 
-1. Hosted meeting persistence and invite tokens with guest-first access and optional account claiming.
-2. Real routing adapter for route matrices, privacy-preserving pickup areas, and recalculation when riders/offers change.
-3. Notification adapter that derives reminders from confirmed dates, bring responsibilities, and carpool state.
-4. Calendar adapter for free/busy input and confirmed-event export without making an external calendar authoritative.
+1. Real routing adapter for route matrices, privacy-preserving pickup areas, and recalculation when riders/offers change.
+2. Notification adapter that derives reminders from confirmed dates, bring responsibilities, and carpool state.
+3. Calendar adapter for free/busy input and confirmed-event export without making an external calendar authoritative.
+4. Choose and implement a durable deployment adapter for `HostedMeetingStore` / `GuestAccessStore` once the hosting target is selected.
 
 ## Local checks
 

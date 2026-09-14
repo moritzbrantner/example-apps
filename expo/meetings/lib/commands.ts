@@ -47,7 +47,12 @@ export function claimGuestParticipant(
     ...meeting,
     participants: meeting.participants.map((participant) => {
       if (participant.id !== participantId) return participant;
-      if (participant.identity.kind === 'account') return participant;
+      if (participant.identity.kind === 'account') {
+        if (participant.identity.accountId !== accountId) {
+          throw new Error(`Participant ${participantId} is already claimed by another account`);
+        }
+        return participant;
+      }
       return { ...participant, identity: { kind: 'account' as const, accountId } };
     }),
   };
