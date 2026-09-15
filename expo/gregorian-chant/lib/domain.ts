@@ -103,7 +103,7 @@ export function searchChants(chants: readonly Chant[], query: string): Chant[] {
   if (!normalized) return [...chants];
 
   return chants.filter((chant) =>
-    [chant.title, chant.incipit, chant.latinText, ...chant.tags]
+    [chant.title, chant.incipit, chant.latinText, chant.usage, ...chant.tags]
       .join(" ")
       .toLocaleLowerCase()
       .includes(normalized),
