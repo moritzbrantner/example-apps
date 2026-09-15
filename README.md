@@ -29,6 +29,7 @@ Concrete applications that consume and dogfood the reusable templates without be
 ### Fine arts · Expo
 
 - [`music-practice`](expo/music-practice) — local-first practice notebook with wall-clock timing and persistent native audio takes
+- [`gregorian-chant`](expo/gregorian-chant) — local-first Gregorian chant library/practice foundation with GABC authority and explicit shared audio-analysis/player seams
 - [`sketchbook`](expo/sketchbook) — local-first vector sketchbook with freehand drawing, brush controls, undo, and redo
 
 The fine-arts examples intentionally start as small usable tools. Requirements such as instrument modeling, sheet music, tuning analysis, pressure-sensitive drawing, layers, references, and export should emerge from actual use before shared abstractions are introduced.
