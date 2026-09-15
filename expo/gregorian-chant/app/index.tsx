@@ -17,8 +17,7 @@ export default function HomeScreen() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(CHANTS[0]?.id ?? "");
   const results = useMemo(() => searchChants(CHANTS, query), [query]);
-  const selected =
-    CHANTS.find((chant) => chant.id === selectedId) ?? results[0] ?? CHANTS[0];
+  const selected = results.find((chant) => chant.id === selectedId) ?? results[0];
 
   return (
     <SafeAreaView style={styles.safeArea}>
