@@ -10,6 +10,7 @@ describe("chant catalog", () => {
       "ave-maria-antiphon",
     ]);
     expect(searchChants(CHANTS, "Christe")[0]?.id).toBe("kyrie-xi-vatican-1908");
+    expect(searchChants(CHANTS, "kyriale")[0]?.id).toBe("kyrie-xi-vatican-1908");
   });
 
   test("keeps GABC as structured source authority", () => {
