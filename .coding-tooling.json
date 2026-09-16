@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "profile": "repository-foundation-v1",
+  "tiers": {
+    "fast": ["typecheck", "test:unit", "build"],
+    "full": ["typecheck", "test:unit", "build"]
+  },
+  "requiredCapabilities": ["typecheck", "test:unit", "build"],
+  "capabilityCommands": {
+    "@example-apps/fleet": {
+      "typecheck": ["bun", "run", "typecheck"],
+      "test:unit": ["bun", "run", "test"],
+      "build": ["bun", "run", "build"]
+    }
+  }
+}

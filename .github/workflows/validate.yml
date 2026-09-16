@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   expo-apps:
     name: Expo apps
@@ -20,19 +24,22 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.12
-      - name: Verify Expo apps
+      - name: Install exact app dependencies
         shell: bash
         run: |
           set -euo pipefail
           for app in expo/*; do
-            if [[ ! -d "$app" ]]; then
+            if [[ ! -f "$app/package.json" ]]; then
               continue
             fi
-            echo "::group::$app"
-            (
-              cd "$app"
-              bun install
-              bun run verify
-            )
+            test -f "$app/bun.lock"
+            echo "::group::install $app"
+            (cd "$app" && bun install --frozen-lockfile)
             echo "::endgroup::"
           done
+      - name: Test Expo apps
+        run: bun run test
+      - name: Typecheck Expo apps
+        run: bun run typecheck
+      - name: Build Expo apps
+        run: bun run build
