@@ -1,8 +1,7 @@
 {
-  "name": "@example-apps/workspace",
+  "name": "@example-apps/fleet",
   "private": true,
   "packageManager": "bun@1.3.12",
-  "workspaces": ["expo/*"],
   "scripts": {
     "test": "bash scripts/run-expo-apps.sh test",
     "typecheck": "bash scripts/run-expo-apps.sh typecheck",

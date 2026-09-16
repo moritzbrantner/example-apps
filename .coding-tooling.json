@@ -7,7 +7,7 @@
   },
   "requiredCapabilities": ["typecheck", "test:unit", "build"],
   "capabilityCommands": {
-    "@example-apps/workspace": {
+    "@example-apps/fleet": {
       "typecheck": ["bun", "run", "typecheck"],
       "test:unit": ["bun", "run", "test"],
       "build": ["bun", "run", "build"]
