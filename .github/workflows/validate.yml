@@ -19,8 +19,10 @@ jobs:
     name: Expo apps
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out PR head
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
       - name: Download generated app lockfiles
         uses: actions/download-artifact@v5
         with:
