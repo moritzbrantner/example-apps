@@ -95,14 +95,16 @@ const statusLabel: Record<Availability, string> = {
   unavailable: 'Unavailable',
 };
 
+const dateTimeFormatter = new Intl.DateTimeFormat('en', {
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('en', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value));
+  return dateTimeFormatter.format(new Date(value));
 }
 
 export default function HomeScreen() {
