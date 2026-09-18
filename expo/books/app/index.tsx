@@ -509,6 +509,7 @@ function BookDetail({
 export default function BooksApp() {
   const [books, setBooks] = useState<LibraryBook[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [storageWarning, setStorageWarning] = useState('');
   const [view, setView] = useState<'library' | 'add'>('library');
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
@@ -516,26 +517,26 @@ export default function BooksApp() {
     let active = true;
     void AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
-        if (!active || !stored) {
-          return;
-        }
+        if (!active) return;
 
-        const parsed = JSON.parse(stored) as unknown;
-        if (Array.isArray(parsed)) {
-          setBooks(
-            (parsed as LibraryBook[]).map((book) => ({
-              ...book,
-              review: typeof book.review === 'string' ? book.review : '',
-            })),
-          );
+        if (stored) {
+          const parsed = JSON.parse(stored) as unknown;
+          if (Array.isArray(parsed)) {
+            setBooks(
+              (parsed as LibraryBook[]).map((book) => ({
+                ...book,
+                review: typeof book.review === 'string' ? book.review : '',
+              })),
+            );
+          }
         }
+        setHydrated(true);
       })
       .catch(() => {
-        // A broken local cache should not prevent the app from opening.
-      })
-      .finally(() => {
         if (active) {
-          setHydrated(true);
+          setStorageWarning(
+            'Saved library data could not be read. Changes will not be persisted until the app is reopened successfully.',
+          );
         }
       });
 
@@ -585,6 +586,7 @@ export default function BooksApp() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
+        {storageWarning ? <Text style={styles.storageWarning}>{storageWarning}</Text> : null}
         {selectedBook ? (
           <BookDetail
             book={selectedBook}
@@ -613,6 +615,16 @@ export default function BooksApp() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: '#f5f3ed' },
+  storageWarning: {
+    color: '#8c3838',
+    fontSize: 13,
+    lineHeight: 19,
+    maxWidth: 760,
+    alignSelf: 'center',
+    width: '100%',
+    paddingHorizontal: 20,
+    paddingTop: 14,
+  },
   pageContent: {
     width: '100%',
     maxWidth: 760,
