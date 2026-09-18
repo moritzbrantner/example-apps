@@ -81,6 +81,30 @@ describe('carpool optimizer', () => {
     expect(plan.matches.find((match) => match.requestId === 'request-2')?.offerId).toBe('offer-a');
   });
 
+  test('does not assign a ride request to the same participant\'s own offer', () => {
+    const plan = calculateCarpoolPlan(
+      [
+        {
+          id: 'own-car',
+          driverParticipantId: 'alice',
+          seats: 1,
+          origin: { id: 'home', label: 'Home', latitude: 0, longitude: 0 },
+        },
+      ],
+      [
+        {
+          id: 'alice-ride',
+          participantId: 'alice',
+          pickup: { id: 'pickup', label: 'Pickup', latitude: 0, longitude: 0 },
+        },
+      ],
+      [{ offerId: 'own-car', requestId: 'alice-ride', detourMinutes: 0, distanceKm: 0 }],
+    );
+
+    expect(plan.matches).toEqual([]);
+    expect(plan.unmatchedRequestIds).toEqual(['alice-ride']);
+  });
+
   test('rejects route matches beyond the configured detour limit', () => {
     const plan = calculateCarpoolPlan(
       [{ id: 'offer', driverParticipantId: 'driver', seats: 1, origin: { id: 'o', label: 'O', latitude: 0, longitude: 0 } }],

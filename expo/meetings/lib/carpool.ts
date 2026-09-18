@@ -108,6 +108,8 @@ export function calculateCarpoolPlan(
   const requestIndex = new Map(requests.map((request, index) => [request.id, requestOffset + index]));
   const offerIndex = new Map(offers.map((offer, index) => [offer.id, offerOffset + index]));
   const pairEdges: PairEdge[] = [];
+  const offerById = new Map(offers.map((offer) => [offer.id, offer]));
+  const requestById = new Map(requests.map((request) => [request.id, request]));
 
   for (const request of requests) addEdge(graph, source, requestIndex.get(request.id)!, 1, 0);
   for (const offer of offers) {
@@ -118,7 +120,17 @@ export function calculateCarpoolPlan(
   for (const routeCost of routeCosts) {
     const from = requestIndex.get(routeCost.requestId);
     const to = offerIndex.get(routeCost.offerId);
-    if (from === undefined || to === undefined) continue;
+    const request = requestById.get(routeCost.requestId);
+    const offer = offerById.get(routeCost.offerId);
+    if (
+      from === undefined ||
+      to === undefined ||
+      request === undefined ||
+      offer === undefined ||
+      request.participantId === offer.driverParticipantId
+    ) {
+      continue;
+    }
     const edge = addEdge(graph, from, to, 1, Math.round(routeCost.detourMinutes * 1000));
     pairEdges.push({
       offerId: routeCost.offerId,
@@ -167,8 +179,6 @@ export function calculateCarpoolPlan(
     }
   }
 
-  const offerById = new Map(offers.map((offer) => [offer.id, offer]));
-  const requestById = new Map(requests.map((request) => [request.id, request]));
   const matches = pairEdges
     .filter((pair) => pair.edge.capacity === 0)
     .map((pair) => {
