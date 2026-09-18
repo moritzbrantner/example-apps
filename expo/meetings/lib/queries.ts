@@ -34,8 +34,8 @@ function emptyAvailabilityCounts(): AvailabilityCounts {
 }
 
 function countStatusesByDateOption(meeting: Meeting): Map<string, AvailabilityCounts> {
-  const countsByDateOption = new Map(
-    meeting.dateOptions.map((option) => [option.id, emptyAvailabilityCounts()]),
+  const countsByDateOption = new Map<string, AvailabilityCounts>(
+    meeting.dateOptions.map((option) => [option.id, emptyAvailabilityCounts()] as const),
   );
 
   for (const response of meeting.availability) {
