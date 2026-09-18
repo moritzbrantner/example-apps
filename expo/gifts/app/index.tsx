@@ -64,6 +64,7 @@ export default function GiftsApp() {
   const [notes, setNotes] = useState('');
   const [sourceGiftId, setSourceGiftId] = useState<string | null>(null);
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>('all');
+  const [storageWarning, setStorageWarning] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -78,7 +79,7 @@ export default function GiftsApp() {
       })
       .catch(() => {
         if (!active) return;
-        setError(
+        setStorageWarning(
           'Saved gift history could not be read. Changes will not be persisted until the app is reopened successfully.',
         );
         setLoaded(true);
@@ -328,6 +329,7 @@ export default function GiftsApp() {
           ) : null}
 
           {warning ? <Text style={styles.warning}>{warning}</Text> : null}
+          {storageWarning ? <Text style={styles.error}>{storageWarning}</Text> : null}
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <Pressable
