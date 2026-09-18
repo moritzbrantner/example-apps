@@ -106,6 +106,14 @@ export default function ReaderScreen() {
     () => (content ? searchReaderDocument(content, query) : []),
     [content, query],
   );
+  const sectionIndexById = useMemo(
+    () => new Map(content?.sections.map((section, index) => [section.id, index] as const) ?? []),
+    [content],
+  );
+  const bookmarkedParagraphKeys = useMemo(
+    () => new Set(readingState.paragraphBookmarks),
+    [readingState.paragraphBookmarks],
+  );
 
   if (!catalogDocument) {
     return <MessageScreen title="Document not found" message="This document is not in the catalog." />;
@@ -320,10 +328,8 @@ export default function ReaderScreen() {
                 <Text style={styles.sectionTitle}>Search results</Text>
                 <Text style={styles.resultCount}>{searchResults.length} matching paragraphs</Text>
                 {searchResults.map((result) => {
-                  const sectionIndex = content.sections.findIndex(
-                    (section) => section.id === result.sectionId,
-                  );
-                  if (sectionIndex < 0) {
+                  const sectionIndex = sectionIndexById.get(result.sectionId);
+                  if (sectionIndex === undefined) {
                     return null;
                   }
                   return (
@@ -389,7 +395,7 @@ export default function ReaderScreen() {
                       selectedSource.language,
                       paragraph.id,
                     );
-                    const bookmarked = readingState.paragraphBookmarks.includes(bookmarkKey);
+                    const bookmarked = bookmarkedParagraphKeys.has(bookmarkKey);
                     return (
                       <View
                         key={paragraph.id}
@@ -487,16 +493,18 @@ function MessageScreen({
   );
 }
 
+const readerTimestampFormatter = new Intl.DateTimeFormat('en', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
+
 function formatTimestamp(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return 'locally';
   }
-  return new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(date);
+  return readerTimestampFormatter.format(date);
 }
 
 const styles = StyleSheet.create({
