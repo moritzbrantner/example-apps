@@ -12,13 +12,14 @@
 
 - Use the exact Bun version declared by the root and app `packageManager` fields.
 - Treat each app-local `bun.lock` as authoritative for that app's dependency graph. CI and acceptance must install each app with `bun install --frozen-lockfile`.
-- Run repository validation through the root `test`, `typecheck`, and `build` scripts so every Expo app is covered by the same deterministic fleet path after dependencies are installed.
+- Treat `.coding-tooling.json` as the executable fleet validation contract. The root scripts remain the repository-owned capability implementations; hosted CI delegates tier selection and execution to an exact `coding-tooling` revision after the app-local dependency graphs are prepared.
+- Use the revision-pinned `coding-tooling` Pages surface for zero-install structural preflight when useful. Pages evidence is non-executing and does not replace local validation or exact-head hosted CI.
 - Keep app-local `test`, `typecheck`, and `build` scripts meaningful and directly runnable; the root runner orchestrates them but does not redefine their semantics.
 - Keep Renovate as the single dependency updater for this repository.
 
 ## Acceptance
 
-- For app/domain changes, run the affected app's narrow tests first and then the root validation path.
+- For app/domain changes, run the affected app's narrow tests first and then the root validation path through the declared `coding-tooling` tier.
 - Domain logic that can be tested without React Native should have focused deterministic tests next to the domain module.
 - Do not weaken app behavior, skip an app, loosen dependency ranges, or add placeholder checks merely to make the fleet validation green.
 - Use exact-head hosted CI as the final acceptance evidence before integration.

@@ -37,9 +37,20 @@ jobs:
             (cd "$app" && bun install --frozen-lockfile)
             echo "::endgroup::"
           done
-      - name: Test Expo apps
-        run: bun run test
-      - name: Typecheck Expo apps
-        run: bun run typecheck
-      - name: Build Expo apps
-        run: bun run build
+      - name: Run coding-tooling fast tier
+        uses: moritzbrantner/coding-tooling@9a1aaac5bd4aac7c0d78857f51dbcde41ed20cb1
+        with:
+          operation: run
+          tier: fast
+          bun-version: 1.3.12
+          install-mode: none
+          report-path: .artifacts/coding-tooling/fast.json
+          strict: "true"
+      - name: Preserve coding-tooling evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: coding-tooling-fast-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .artifacts/coding-tooling/fast.json
+          if-no-files-found: error
+          retention-days: 14
