@@ -23,25 +23,40 @@ export interface DateOptionRanking {
   score: number;
 }
 
-function countStatuses(meeting: Meeting, dateOptionId: string) {
-  const counts: Record<Availability, number> = {
+type AvailabilityCounts = Record<Availability, number>;
+
+function emptyAvailabilityCounts(): AvailabilityCounts {
+  return {
     available: 0,
     'if-needed': 0,
     unavailable: 0,
   };
+}
+
+function countStatusesByDateOption(meeting: Meeting): Map<string, AvailabilityCounts> {
+  const countsByDateOption = new Map(
+    meeting.dateOptions.map((option) => [option.id, emptyAvailabilityCounts()]),
+  );
+
   for (const response of meeting.availability) {
-    if (response.dateOptionId === dateOptionId) counts[response.status] += 1;
+    const counts = countsByDateOption.get(response.dateOptionId);
+    if (counts) {
+      counts[response.status] += 1;
+    }
   }
-  return counts;
+
+  return countsByDateOption;
 }
 
 export function rankDateOptions(
   meeting: Meeting,
   policy: AvailabilityPolicy = defaultAvailabilityPolicy,
 ): DateOptionRanking[] {
+  const countsByDateOption = countStatusesByDateOption(meeting);
+
   return meeting.dateOptions
     .map((option) => {
-      const counts = countStatuses(meeting, option.id);
+      const counts = countsByDateOption.get(option.id) ?? emptyAvailabilityCounts();
       const answered = counts.available + counts['if-needed'] + counts.unavailable;
       const unanswered = Math.max(0, meeting.participants.length - answered);
       const score =
