@@ -586,6 +586,7 @@ export default function BooksApp() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
+        {storageWarning ? <Text style={styles.storageWarning}>{storageWarning}</Text> : null}
         {selectedBook ? (
           <BookDetail
             book={selectedBook}
@@ -600,14 +601,11 @@ export default function BooksApp() {
             onBookReady={handleBookReady}
           />
         ) : (
-          <>
-            {storageWarning ? <Text style={styles.storageWarning}>{storageWarning}</Text> : null}
-            <LibraryView
-              books={books}
-              onAdd={() => setView('add')}
-              onSelect={setSelectedBookId}
-            />
-          </>
+          <LibraryView
+            books={books}
+            onAdd={() => setView('add')}
+            onSelect={setSelectedBookId}
+          />
         )}
       </KeyboardAvoidingView>
     </SafeAreaView>
