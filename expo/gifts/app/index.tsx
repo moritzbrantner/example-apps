@@ -54,6 +54,7 @@ function relationLabel(gift: GiftRecord, state: GiftState): string {
 export default function GiftsApp() {
   const [state, setState] = useState<GiftState>(emptyGiftState());
   const [loaded, setLoaded] = useState(false);
+  const [persistenceReady, setPersistenceReady] = useState(false);
   const [newPersonName, setNewPersonName] = useState('');
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [direction, setDirection] = useState<GiftDirection>('received');
@@ -66,16 +67,32 @@ export default function GiftsApp() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    void loadGiftState().then((next) => {
-      setState(next);
-      setSelectedPersonId(next.people[0]?.id ?? '');
-      setLoaded(true);
-    });
+    let active = true;
+    void loadGiftState()
+      .then((next) => {
+        if (!active) return;
+        setState(next);
+        setSelectedPersonId(next.people[0]?.id ?? '');
+        setPersistenceReady(true);
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError(
+          'Saved gift history could not be read. Changes will not be persisted until the app is reopened successfully.',
+        );
+        setLoaded(true);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const commit = (next: GiftState) => {
     setState(next);
-    void saveGiftState(next);
+    if (persistenceReady) {
+      void saveGiftState(next);
+    }
   };
 
   const receivedGifts = useMemo(
