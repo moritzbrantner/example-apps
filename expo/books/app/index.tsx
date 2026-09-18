@@ -189,17 +189,24 @@ function AddBookView({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const unlockTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lookupController = useRef<AbortController | null>(null);
 
   useEffect(
     () => () => {
       if (unlockTimer.current) {
         clearTimeout(unlockTimer.current);
       }
+      lookupController.current?.abort();
+      lookupController.current = null;
     },
     [],
   );
 
   const addByIsbn = async (rawValue: string) => {
+    if (lookupController.current) {
+      return;
+    }
+
     const isbn = normalizeIsbn(rawValue);
     if (!isbn) {
       setMessage('That is not a valid ISBN-10 or ISBN-13.');
@@ -213,22 +220,41 @@ function AddBookView({
       return;
     }
 
+    const controller = new AbortController();
+    lookupController.current = controller;
     setBusy(true);
     setMessage('Looking up book details…');
+
+    let book: LibraryBook | null = null;
     try {
       let metadata = null;
       try {
-        metadata = await lookupBookMetadata(isbn);
+        metadata = await lookupBookMetadata(isbn, controller.signal);
       } catch {
+        if (controller.signal.aborted) {
+          return;
+        }
         // Metadata is enrichment only. A valid ISBN can still be saved offline.
       }
 
-      const book = createLibraryBook(isbn, metadata);
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      book = createLibraryBook(isbn, metadata);
       setManualIsbn('');
       setMessage(metadata ? 'Book found.' : 'Saved locally. Add the missing details yourself.');
-      onBookReady(book, false);
     } finally {
-      setBusy(false);
+      if (lookupController.current === controller) {
+        lookupController.current = null;
+      }
+      if (!controller.signal.aborted) {
+        setBusy(false);
+      }
+    }
+
+    if (book) {
+      onBookReady(book, false);
     }
   };
 
