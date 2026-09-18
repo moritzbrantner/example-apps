@@ -101,6 +101,7 @@ export default function HabitsApp() {
   const [draft, setDraft] = useState('');
   const [target, setTarget] = useState<(typeof TARGETS)[number]>(5);
   const [hydrated, setHydrated] = useState(false);
+  const [storageWarning, setStorageWarning] = useState('');
   const today = localDateKey();
   const days = useMemo(() => previousDayKeys(7), [today]);
 
@@ -108,11 +109,16 @@ export default function HabitsApp() {
     let active = true;
     void AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
-        if (active) setHabits(deserializeHabits(stored));
+        if (!active) return;
+        setHabits(deserializeHabits(stored));
+        setHydrated(true);
       })
-      .catch(() => {})
-      .finally(() => {
-        if (active) setHydrated(true);
+      .catch(() => {
+        if (active) {
+          setStorageWarning(
+            'Saved habits could not be read. Changes will not be persisted until the app is reopened successfully.',
+          );
+        }
       });
     return () => {
       active = false;
@@ -145,6 +151,7 @@ export default function HabitsApp() {
           <Text style={styles.summary}>
             {doneToday} of {habits.length} checked in today
           </Text>
+          {storageWarning ? <Text style={styles.storageWarning}>{storageWarning}</Text> : null}
 
           <View style={styles.composerCard}>
             <Text style={styles.sectionTitle}>Add a habit</Text>
@@ -225,6 +232,7 @@ const styles = StyleSheet.create({
   eyebrow: { color: '#657067', fontSize: 12, fontWeight: '800', letterSpacing: 1.4 },
   heading: { color: '#1f2921', fontSize: 34, fontWeight: '800', lineHeight: 39, letterSpacing: -1, marginTop: 8 },
   summary: { color: '#687068', fontSize: 14, fontWeight: '600', marginTop: 10 },
+  storageWarning: { color: '#8c3838', fontSize: 13, lineHeight: 19, marginTop: 10 },
   composerCard: { backgroundColor: '#faf9f5', borderColor: '#dedfd8', borderWidth: 1, borderRadius: 20, padding: 18, marginTop: 24 },
   sectionTitle: { color: '#273129', fontSize: 18, fontWeight: '800' },
   input: { backgroundColor: '#fff', borderColor: '#d7d9d2', borderWidth: 1, borderRadius: 14, color: '#1f2921', fontSize: 16, marginTop: 14, paddingHorizontal: 14, paddingVertical: 12 },
