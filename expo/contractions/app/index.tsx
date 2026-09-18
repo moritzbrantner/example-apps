@@ -37,17 +37,23 @@ function formatClock(timestamp: number) {
 export default function ContractionsApp() {
   const [session, setSession] = useState<ContractionSession>(emptySession);
   const [hydrated, setHydrated] = useState(false);
+  const [storageWarning, setStorageWarning] = useState('');
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
     let active = true;
     void AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
-        if (active) setSession(deserializeSession(stored));
+        if (!active) return;
+        setSession(deserializeSession(stored));
+        setHydrated(true);
       })
-      .catch(() => {})
-      .finally(() => {
-        if (active) setHydrated(true);
+      .catch(() => {
+        if (active) {
+          setStorageWarning(
+            'Saved contraction timings could not be read. Changes will not be persisted until the app is reopened successfully.',
+          );
+        }
       });
     return () => {
       active = false;
@@ -91,6 +97,7 @@ export default function ContractionsApp() {
         <Text style={styles.eyebrow}>CONTRACTIONS</Text>
         <Text style={styles.heading}>One large button. Accurate timing.</Text>
         <Text style={styles.subheading}>Start when a contraction begins. Stop when it ends.</Text>
+        {storageWarning ? <Text style={styles.storageWarning}>{storageWarning}</Text> : null}
 
         <View style={styles.timerCard}>
           <Text style={styles.timerLabel}>{session.activeStartedAt === null ? 'READY' : 'CONTRACTION IN PROGRESS'}</Text>
@@ -177,6 +184,7 @@ const styles = StyleSheet.create({
   eyebrow: { color: '#657067', fontSize: 12, fontWeight: '800', letterSpacing: 1.4 },
   heading: { color: '#1f2921', fontSize: 34, fontWeight: '800', lineHeight: 39, letterSpacing: -1, marginTop: 8 },
   subheading: { color: '#687068', fontSize: 14, lineHeight: 21, marginTop: 10 },
+  storageWarning: { color: '#8c3838', fontSize: 13, lineHeight: 19, marginTop: 10 },
   timerCard: { alignItems: 'center', backgroundColor: '#faf9f5', borderColor: '#dedfd8', borderWidth: 1, borderRadius: 24, marginTop: 24, padding: 24 },
   timerLabel: { color: '#707871', fontSize: 11, fontWeight: '800', letterSpacing: 1.1 },
   timerValue: { color: '#243027', fontSize: 48, fontWeight: '300', fontVariant: ['tabular-nums'], marginTop: 14 },
