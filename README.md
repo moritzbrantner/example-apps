@@ -43,3 +43,11 @@ Everyday apps remain separate authorities but can exchange bounded intents throu
 Examples should remain independently understandable and should not become hidden dependencies of their source templates. Port application behavior and application-owned tests; leave template-specific release, scaffolding, and fleet infrastructure with the template unless an example genuinely needs it.
 
 Ports are intentionally incremental so each application can establish a clean ownership boundary before the next one moves. Each port must pass the repository's exact-head validation before integration.
+
+## GitHub Pages
+
+The Pages build keeps the catalog separate from the applications. The TypeScript overview is published at `/example-apps/`, while every Expo application is exported independently under `/example-apps/apps/<slug>/`.
+
+`bun run build:pages` builds the overview, exports every app with its existing `EXPO_PUBLIC_GITHUB_PAGES_BASE_URL` seam, and then augments the result with the shared `github-pages-template` evidence routes. The deployment itself is delegated to `reusable-workflows`.
+
+GitHub Pages exposes one site per repository, so these are isolated app subsites rather than independent DNS subdomains. Moving an app to a separate custom domain later does not require sharing runtime state or changing its product authority.

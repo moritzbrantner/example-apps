@@ -26,17 +26,7 @@ jobs:
           bun-version: 1.3.12
       - name: Install exact app dependencies
         shell: bash
-        run: |
-          set -euo pipefail
-          for app in expo/*; do
-            if [[ ! -f "$app/package.json" ]]; then
-              continue
-            fi
-            test -f "$app/bun.lock"
-            echo "::group::install $app"
-            (cd "$app" && bun install --frozen-lockfile)
-            echo "::endgroup::"
-          done
+        run: bash scripts/install-expo-apps.sh
       - name: Run coding-tooling fast tier
         uses: moritzbrantner/coding-tooling@9a1aaac5bd4aac7c0d78857f51dbcde41ed20cb1
         with:
@@ -54,3 +44,23 @@ jobs:
           path: .artifacts/coding-tooling/fast.json
           if-no-files-found: error
           retention-days: 14
+
+  pages:
+    name: Pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.12
+      - name: Install exact app dependencies
+        shell: bash
+        run: bash scripts/install-expo-apps.sh
+      - name: Build complete Pages artifact
+        run: bun run verify:pages
