@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "name": "Example apps",
+    "repository": "moritzbrantner/example-apps",
+    "basePath": "/example-apps/",
+    "kicker": "Runnable application catalog",
+    "description": "Concrete applications that dogfood reusable foundations while remaining independently understandable."
+  },
+  "preferences": {
+    "defaults": {
+      "appearance.color_scheme": "system",
+      "appearance.contrast": "system",
+      "localization.locale": "en"
+    },
+    "locales": [
+      { "id": "en", "label": "English" },
+      { "id": "de", "label": "Deutsch" }
+    ]
+  },
+  "links": [
+    {
+      "label": "Source",
+      "href": "https://github.com/moritzbrantner/example-apps"
+    }
+  ],
+  "evidenceSources": [
+    {
+      "id": "coding-tooling",
+      "label": "Repository verification",
+      "kind": "coding-tooling-analysis-v1",
+      "producer": "coding-tooling",
+      "url": "https://moritzbrantner.github.io/coding-tooling/analysis.json/?repo=moritzbrantner%2Fexample-apps"
+    }
+  ]
+}

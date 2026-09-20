@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Example apps</title>
+    <meta name="description" content="Runnable examples that dogfood reusable foundations." />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./assets/main.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Example apps home">example-apps</a>
+      <nav class="site-nav" aria-label="Project navigation">
+        <a href="./stats/">Stats</a>
+        <a href="./evidence/">Evidence</a>
+        <a href="https://github.com/moritzbrantner/example-apps">Source</a>
+      </nav>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Runnable application catalog</p>
+        <h1 id="page-title">Small apps, isolated on purpose.</h1>
+        <p class="lede">Each example owns its product behavior and is built as an independent web app. Use this catalog to open a demo without coupling the apps to each other.</p>
+      </section>
+      <section class="catalog" aria-labelledby="catalog-title">
+        <div class="catalog-heading">
+          <div>
+            <p class="eyebrow">Browse</p>
+            <h2 id="catalog-title">Applications</h2>
+          </div>
+          <p id="result-status" class="result-status" aria-live="polite"></p>
+        </div>
+        <form class="filters" id="filters" role="search">
+          <label>
+            <span>Search</span>
+            <input id="search" name="q" type="search" autocomplete="off" placeholder="Search apps" />
+          </label>
+          <label>
+            <span>Category</span>
+            <select id="category" name="category">
+              <option value="all">All</option>
+              <option value="everyday">Everyday</option>
+              <option value="fine-arts">Fine arts</option>
+            </select>
+          </label>
+        </form>
+        <div id="app-list" class="app-list"></div>
+      </section>
+    </main>
+    <footer>
+      <p>Concrete applications that consume reusable foundations without becoming part of the template contract.</p>
+    </footer>
+  </body>
+</html>
