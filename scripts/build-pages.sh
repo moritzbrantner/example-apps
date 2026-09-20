@@ -27,9 +27,18 @@ for app in expo/*; do
   echo "::endgroup::"
 done
 
-bunx @moritzbrantner/github-pages-template@0.1.0 build \
-  --config ./pages/pages.config.json \
-  --out ./dist \
+github_pages_template_ref="7696672835b8a33eb31607ce000e650775e0f0b8"
+template_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/github-pages-template-$github_pages_template_ref"
+rm -rf "$template_root"
+mkdir -p "$template_root"
+curl --fail --silent --show-error --location \
+  "https://codeload.github.com/moritzbrantner/github-pages-template/tar.gz/$github_pages_template_ref" \
+  | tar --extract --gzip --strip-components=1 --directory "$template_root"
+
+node "$template_root/bin/github-pages-template.mjs" build \
+  --config "$repo_root/pages/pages.config.json" \
+  --out "$repo_root/dist" \
   --augment
 
+rm -rf "$template_root"
 touch dist/.nojekyll
