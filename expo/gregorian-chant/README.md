@@ -21,12 +21,17 @@ This slice intentionally refuses to invent timing evidence. Practice loops becom
 - **native-whisperx** is an optional ingestion tool for transcription/alignment experiments. It is not part of ordinary playback and its output must be corrected/validated before becoming chant timing data.
 - **notation rendering** consumes canonical GABC. Rendered SVG/PDF/image output is derived and must never become the authoritative chant representation.
 
+## Notation rendering
+
+The reader renders canonical GABC through an app-owned `GabcNotationRenderer` boundary. The current adapter uses `@vagdur/exsurge` inside an Expo DOM component: it runs directly in the browser on web and inside Expo's local DOM WebView on native. The SVG is generated on demand and is never persisted as chant authority.
+
+Rendering failure is non-destructive. The canonical GABC stays visible in the reader, so a derived-view problem cannot replace or rewrite source notation.
+
 ## Next vertical slice
 
-1. Add a GABC renderer adapter (web and native) without changing the domain model.
-2. Extract/consume a reusable media-player transport package rather than duplicating player state here.
-3. Attach a local recording to a chant and persist recording provenance.
-4. Capture phrase timings against that recording and enable slow playback + phrase loops.
-5. Only then add pitch-following/sing-along analysis through audio-analysis.
+1. Extract/consume a reusable media-player transport package rather than duplicating player state here.
+2. Attach a local recording to a chant and persist recording provenance.
+3. Capture phrase timings against that recording and enable slow playback + phrase loops.
+4. Only then add pitch-following/sing-along analysis through audio-analysis.
 
 A later native Swift/Kotlin client can consume the same catalog/domain contracts. The Expo app is deliberately a dogfooding/product surface, not the authority for chant or signal-processing semantics.
