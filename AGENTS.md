@@ -17,6 +17,15 @@
 - Keep app-local `test`, `typecheck`, and `build` scripts meaningful and directly runnable; the root runner orchestrates them but does not redefine their semantics.
 - Keep Renovate as the single dependency updater for this repository.
 
+
+## Product UI
+
+- Treat functional app screens as tools, not landing pages. Put the primary task, content, search/filter controls, and frequent actions in the first viewport; do not lead with recurring hero slogans or marketing-style explanatory copy.
+- Do not add KPI, count, or summary cards merely to make a screen look like a dashboard. A metric belongs on the screen only when it changes a decision or helps complete the current task.
+- Every persistent navigation item, icon, and action must correspond to a real frequent destination or task. Remove placeholder/decorative icons and avoid duplicating page identity with redundant navigation chrome.
+- Prefer compact, information-dense mobile layouts over decorative whitespace. Use explanatory copy only where it resolves ambiguity at the point of action; move implementation rationale and product manifestos to README/About surfaces.
+- Empty states should state what is missing and the next useful action, not sell or explain the product.
+
 ## Acceptance
 
 - For app/domain changes, run the affected app's narrow tests first and then the root validation path through the declared `coding-tooling` tier.
