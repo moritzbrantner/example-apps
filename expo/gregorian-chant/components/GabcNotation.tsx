@@ -1,6 +1,6 @@
 'use dom';
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { DOMProps } from "expo/dom";
 import { ExsurgeGabcNotationRenderer } from "../lib/exsurge-notation-renderer";
 
@@ -69,7 +69,7 @@ export default function GabcNotation({ source, label }: GabcNotationProps) {
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   shell: {
     width: "100%",
     minWidth: 0,
