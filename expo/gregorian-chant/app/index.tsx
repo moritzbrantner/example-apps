@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import GabcNotation from "../components/GabcNotation";
 import { CHANTS } from "../lib/catalog";
 import { searchChants } from "../lib/domain";
 import { parseGabc } from "../lib/gabc";
@@ -87,9 +88,18 @@ function ChantReader({ chant }: { chant: (typeof CHANTS)[number] }) {
       <Text style={styles.sectionTitle}>Notation</Text>
       {notation && gabc ? (
         <View style={styles.notation}>
-          <Text style={styles.notationLabel}>GABC · canonical source</Text>
-          <Text style={styles.notationText}>{chant.latinText}</Text>
-          <Text selectable style={styles.gabc}>{notation.source}</Text>
+          <Text style={styles.notationLabel}>Rendered score · derived from canonical GABC</Text>
+          <View style={styles.scoreFrame}>
+            <GabcNotation
+              dom={{ matchContents: true, scrollEnabled: false }}
+              label={`${chant.title} Gregorian notation`}
+              source={notation.source}
+            />
+          </View>
+          <View style={styles.sourceBlock}>
+            <Text style={styles.sourceLabel}>Canonical GABC source</Text>
+            <Text selectable style={styles.gabc}>{notation.source}</Text>
+          </View>
         </View>
       ) : (
         <Text style={styles.pending}>GABC has not been ingested for this catalog entry yet.</Text>
@@ -123,9 +133,11 @@ const styles = StyleSheet.create({
   phrase: { borderLeftWidth: 3, borderLeftColor: "#918673", paddingLeft: 11, paddingVertical: 4 },
   phraseText: { fontSize: 16, color: "#29251f" },
   pending: { marginTop: 2, fontSize: 13, color: "#766d60", fontStyle: "italic" },
-  notation: { backgroundColor: "#fff", borderRadius: 10, borderWidth: 1, borderColor: "#d7d0c2", padding: 14, gap: 10 },
+  notation: { backgroundColor: "#fff", borderRadius: 10, borderWidth: 1, borderColor: "#d7d0c2", padding: 14, gap: 12, overflow: "hidden" },
   notationLabel: { fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: "#6a6358" },
-  notationText: { fontSize: 18, lineHeight: 27, color: "#29251f" },
+  scoreFrame: { width: "100%", minHeight: 136, overflow: "hidden" },
+  sourceBlock: { borderTopWidth: 1, borderTopColor: "#e7e1d7", paddingTop: 12, gap: 8 },
+  sourceLabel: { fontSize: 12, fontWeight: "700", color: "#6a6358" },
   gabc: { fontFamily: "monospace", fontSize: 12, lineHeight: 18, color: "#4b443a" },
   body: { fontSize: 15, lineHeight: 22, color: "#5f594f" },
 });
