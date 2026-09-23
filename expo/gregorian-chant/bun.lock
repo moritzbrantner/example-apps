@@ -5,6 +5,7 @@
     "": {
       "name": "@example-apps/expo-gregorian-chant",
       "dependencies": {
+        "@vagdur/exsurge": "1.29.4",
         "expo": "~57.0.20",
         "expo-router": "~57.0.19",
         "expo-status-bar": "~57.0.1",
@@ -23,6 +24,8 @@
     },
   },
   "packages": {
+    "@vagdur/exsurge": ["@vagdur/exsurge@1.29.4", "", {}, "sha512-GKBhaT/w+ynQSA1sls0CANh24mHl02PTMBuvmHspg1TJwvzpz6haKdPdlJLTDPfpZOjtFp1J8d8CVSwzESoKBg=="],
+
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 
     "@babel/compat-data": ["@babel/compat-data@7.29.7", "", {}, "sha512-locTkQyKvwIEgBzVrn8693ebc97F2U8ZHjbXwDXJ5Fn2TCpNwTlKcaKLkdHop5c/icOFE7qt7Q9JC5hnKNa6Gg=="],
