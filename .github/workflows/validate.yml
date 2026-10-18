@@ -64,3 +64,14 @@ jobs:
         run: bash scripts/install-expo-apps.sh
       - name: Build complete Pages artifact
         run: bun run verify:pages
+
+  merge-ready:
+    name: merge-ready
+    if: ${{ always() }}
+    needs: ["expo-apps", "pages"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: moritzbrantner/reusable-workflows/.github/actions/merge-ready@b0f25f241d76af2584dfc9e375084ff5c5cb97da
+        with:
+          needs: ${{ toJSON(needs) }}
+          required: '["expo-apps", "pages"]'
