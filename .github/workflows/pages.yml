@@ -62,8 +62,8 @@ jobs:
     if: ${{ needs.pages-preflight.outputs.enabled == 'true' }}
     uses: moritzbrantner/reusable-workflows/.github/workflows/deploy-pages.yml@197a252fcfc3d4a631010c61ef77369f5461365c
     with:
-      node_version: "24"
-      bun_version: "1.3.12"
+      node_version: lts/*
+      bun_version: latest
       install_command: "bash scripts/install-expo-apps.sh"
       build_command: "bun run build:pages"
       artifact_path: dist
