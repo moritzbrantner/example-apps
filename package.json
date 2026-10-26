@@ -1,7 +1,7 @@
 {
   "name": "@example-apps/fleet",
   "private": true,
-  "packageManager": "bun@1.4.3",
+  "packageManager": "bun@1.4.4",
   "scripts": {
     "test": "bash scripts/run-expo-apps.sh test && bun test pages/src",
     "typecheck": "bash scripts/run-expo-apps.sh typecheck",
