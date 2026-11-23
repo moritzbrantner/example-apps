@@ -10,7 +10,7 @@
 
 ## Deterministic work
 
-- Use the latest stable Bun; the root and app `packageManager` fields are minimums, not pins.
+- Use the latest stable Bun; neither the root nor the apps declare a Bun version, and each app's `bun.lock` keeps its dependencies frozen.
 - Treat each app-local `bun.lock` as authoritative for that app's dependency graph. CI and acceptance must install each app with `bun install --frozen-lockfile`.
 - Treat `.coding-tooling.json` as the executable fleet validation contract. The root scripts remain the repository-owned capability implementations; hosted CI delegates tier selection and execution to an exact `coding-tooling` revision after the app-local dependency graphs are prepared.
 - Use the revision-pinned `coding-tooling` Pages surface for zero-install structural preflight when useful. Pages evidence is non-executing and does not replace local validation or exact-head hosted CI.
